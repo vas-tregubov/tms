@@ -45,3 +45,7 @@ The project is currently in the MVP development stage.
 ## Project Status
 
 Project initialization and MVP preparation.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the Git workflow.

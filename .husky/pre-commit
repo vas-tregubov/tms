@@ -1,0 +1,4 @@
+for pkg in frontend backend; do
+  echo "→ lint-staged ($pkg)"
+  (cd "$pkg" && npx lint-staged) || exit 1
+done

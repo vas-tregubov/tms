@@ -1,27 +1,12 @@
 {
-  "name": "tms",
-  "version": "1.0.0",
-  "description": "Transport Management System for route planning and delivery operations.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky",
-    "lint": "npm run lint --prefix frontend && npm run lint --prefix backend"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/vas-tregubov/tms.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/vas-tregubov/tms/issues"
-  },
-  "homepage": "https://github.com/vas-tregubov/tms#readme",
-  "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^17.4.1"
-  }
+"name": "tms",
+"private": true,
+"scripts": {"setup": "npm install && npm install --prefix frontend && npm install --prefix backend",
+"prepare": "husky",
+"lint": "npm run lint --prefix frontend && npm run lint --prefix backend"
+},
+"devDependencies": {
+"husky": "^9.1.7",
+"lint-staged": "^17.4.1"
+}
 }

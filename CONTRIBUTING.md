@@ -11,6 +11,45 @@
 
 Changes are added to `develop` through pull requests.
 
+## Project setup
+
+Install dependencies in each workspace and in the repository root:
+
+```bash
+npm install
+npm install --prefix frontend
+npm install --prefix backend
+```
+
+The root `npm install` runs `husky` and enables the Git hooks. Do this once
+after cloning and after every `npm install` that changes the root
+`package.json`.
+
+## Code style and pre-commit hook
+
+Formatting and linting are enforced by a `pre-commit` hook (husky +
+lint-staged). On every commit, staged files are checked per workspace:
+
+* `frontend` — `eslint --fix` and `prettier --write`;
+* `backend` — `eslint --fix` and `prettier --write` (Prettier runs through
+  `eslint-plugin-prettier`).
+
+Auto-fixable issues are fixed and re-staged automatically. A commit is
+blocked if a remaining lint error is found — fix it and commit again.
+
+Run the checks manually:
+
+```bash
+npm run lint                 # lint both workspaces
+npm run lint:fix --prefix frontend
+npm run format --prefix frontend
+npm run lint --prefix backend
+npm run format --prefix backend
+```
+
+To bypass the hook in an emergency, use `git commit --no-verify` (avoid it
+for normal work).
+
 ## Starting a new task
 
 Switch to `develop` and download the latest changes:

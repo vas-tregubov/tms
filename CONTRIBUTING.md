@@ -11,6 +11,12 @@
 
 Changes are added to `develop` through pull requests.
 
+## Project setup
+
+From the repository root, install dependencies and configure Git hooks:
+
+npm run setup
+
 ## Starting a new task
 
 Switch to `develop` and download the latest changes:

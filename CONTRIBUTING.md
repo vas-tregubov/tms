@@ -15,7 +15,9 @@ Changes are added to `develop` through pull requests.
 
 From the repository root, install dependencies and configure Git hooks:
 
+```bash
 npm run setup
+```
 
 ## Starting a new task
 

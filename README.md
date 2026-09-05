@@ -25,6 +25,10 @@ The project is currently in the MVP development stage.
 - React
 - TypeScript
 - Vite
+- Tailwind CSS
+- Storybook
+- Vitest
+- Playwright
 
 ### Backend
 

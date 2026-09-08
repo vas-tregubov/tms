@@ -250,15 +250,12 @@ Example:
 
 ```css
 @theme {
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-
-  --font-sans: Inter, sans-serif;
-
-  --radius-control: 0.5rem;
-  --radius-card: 0.75rem;
+  --color-primary: #0875e1;
+  --color-primary-hover: #0668ca;
+  --color-background: #f3f7fb;
+  --color-foreground: #102044;
+  --radius-control: 0.375rem;
+  --shadow-card: 0 1px 3px rgb(15 23 42 / 8%);
 }
 ```
 

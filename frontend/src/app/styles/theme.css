@@ -1,0 +1,38 @@
+@theme {
+  /* Primary actions */
+  --color-primary: #0875e1;
+  --color-primary-hover: #0668ca;
+  --color-primary-active: #055bb2;
+
+  /* Application surfaces */
+  --color-background: #f3f7fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc;
+
+  /* Typography */
+  --color-foreground: #102044;
+  --color-muted: #64748b;
+
+  /* Borders */
+  --color-border: #dbe4ef;
+
+  /* Route statuses */
+  --color-status-created: #64748b;
+  --color-status-created-soft: #f1f5f9;
+
+  --color-status-assigned: #1677e8;
+  --color-status-assigned-soft: #dbeafe;
+
+  --color-status-in-transit: #ea580c;
+  --color-status-in-transit-soft: #ffedd5;
+
+  --color-status-completed: #16a34a;
+  --color-status-completed-soft: #dcfce7;
+
+  /* Shape */
+  --radius-control: 0.375rem;
+  --radius-card: 0.625rem;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgb(15 23 42 / 8%);
+}

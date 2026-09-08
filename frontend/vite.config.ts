@@ -11,7 +11,9 @@ import { playwright } from '@vitest/browser-playwright'
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   resolve: {
-    tsconfigPaths: true,
+    alias: {
+      '@': path.resolve(import.meta.dirname, 'src'),
+    },
   },
   plugins: [react(), tailwindcss()],
   test: {

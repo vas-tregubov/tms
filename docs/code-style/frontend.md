@@ -1,10 +1,10 @@
 # Frontend Code Style
 
-В документе зафиксированы основные правила написания frontend-кода проекта TMS.
+This document defines the main conventions for writing frontend code in the TMS project.
 
-## Технологии
+## Technologies
 
-Frontend проекта использует:
+The frontend application uses:
 
 * React;
 * TypeScript;
@@ -17,9 +17,9 @@ Frontend проекта использует:
 * ESLint;
 * Prettier.
 
-## React-компоненты
+## React Components
 
-Компоненты пишем в виде стрелочных функций.
+Components should be written as arrow functions.
 
 ```tsx
 type ButtonProps = {
@@ -38,11 +38,11 @@ const Button = ({ children, disabled = false }: ButtonProps) => {
 export default Button
 ```
 
-Для React-компонентов используем `export default`.
+Use `export default` for React components.
 
-В одном файле должен находиться один основной React-компонент.
+Each file should contain only one primary React component.
 
-Название файла должно совпадать с названием компонента:
+The filename should match the component name:
 
 ```text
 Button.tsx
@@ -50,9 +50,9 @@ RouteCard.tsx
 RoadsListPage.tsx
 ```
 
-## Именование
+## Naming Conventions
 
-React-компоненты, их файлы и TypeScript-типы называем в `PascalCase`:
+React components, component files, and TypeScript types should use `PascalCase`:
 
 ```ts
 Button
@@ -61,7 +61,7 @@ RouteCard
 RoadsListPage
 ```
 
-Функции, переменные и свойства называем в `camelCase`:
+Functions, variables, and properties should use `camelCase`:
 
 ```ts
 createRoute
@@ -70,14 +70,14 @@ isLoading
 routeStatus
 ```
 
-Константы, значение которых не изменяется и является общей константой приложения, называем в `UPPER_SNAKE_CASE`:
+Shared application constants should use `UPPER_SNAKE_CASE`:
 
 ```ts
 const DEFAULT_PAGE_SIZE = 20
 const API_TIMEOUT = 5000
 ```
 
-Булевы значения по возможности начинаем с `is`, `has`, `can` или `should`:
+Boolean values should start with `is`, `has`, `can`, or `should` whenever possible:
 
 ```ts
 isLoading
@@ -89,7 +89,7 @@ shouldRefresh
 
 ## Props
 
-Тип пропсов называем по шаблону `<ComponentName>Props`:
+Component props types should follow the `<ComponentName>Props` naming pattern:
 
 ```tsx
 type ButtonProps = {
@@ -99,7 +99,7 @@ type ButtonProps = {
 }
 ```
 
-Компонент принимает необходимые данные и обработчики через props:
+Components should receive the required data and event handlers through props:
 
 ```tsx
 type ButtonProps = {
@@ -118,27 +118,27 @@ const Button = ({ children, onClick }: ButtonProps) => {
 export default Button
 ```
 
-Redux и другие глобальные хранилища не заменяют props.
+Redux and other global state management tools do not replace props.
 
-Через props передаём локальные данные компонента и обработчики. Глобальное состояние используем только для данных, которые действительно нужны нескольким независимым частям приложения.
+Use props for local component data and event handlers. Use global state only for data that is genuinely required by multiple independent parts of the application.
 
-## Импорты и алиасы
+## Imports and Aliases
 
-Для импортов из `src` используем алиас `@`.
+Use the `@` alias for imports from `src`:
 
 ```tsx
 import Button from '@/shared/ui/Button'
 import RouteCard from '@/entities/route/ui/RouteCard'
 ```
 
-Не используем длинные относительные пути:
+Avoid long relative import paths:
 
 ```tsx
-// Не рекомендуется
+// Not recommended
 import Button from '../../../../shared/ui/Button'
 ```
 
-Короткие относительные импорты разрешены внутри одного модуля:
+Short relative imports are allowed within the same module:
 
 ```tsx
 import Button from './Button'
@@ -147,7 +147,7 @@ import type { ButtonProps } from './types'
 
 ## Feature-Sliced Design
 
-Frontend использует следующие слои:
+The frontend application uses the following layers:
 
 ```text
 src/
@@ -159,36 +159,36 @@ src/
 └── shared/
 ```
 
-Назначение слоёв:
+Layer responsibilities:
 
-* `app` — запуск и глобальная конфигурация приложения;
-* `pages` — страницы приложения;
-* `widgets` — крупные самостоятельные блоки страниц;
-* `features` — пользовательские действия и сценарии;
-* `entities` — бизнес-сущности;
-* `shared` — переиспользуемые компоненты, функции, API-клиенты и ресурсы.
+* `app` — application initialization and global configuration;
+* `pages` — application pages;
+* `widgets` — large, self-contained page sections;
+* `features` — user actions and business scenarios;
+* `entities` — business entities;
+* `shared` — reusable components, utilities, API clients, and assets.
 
-Зависимости направлены сверху вниз:
+Dependencies must flow from higher layers to lower layers:
 
 ```text
 app → pages → widgets → features → entities → shared
 ```
 
-Нижний слой не должен импортировать верхний.
+A lower layer must not import from a higher layer.
 
-Например:
+For example:
 
 ```text
-features может импортировать entities и shared
-entities может импортировать shared
-shared не импортирует остальные слои
+features can import from entities and shared
+entities can import from shared
+shared must not import from any other FSD layer
 ```
 
-Слайсы одного слоя не должны напрямую зависеть друг от друга.
+Slices within the same layer must not depend directly on one another.
 
-Для внешнего использования слайс предоставляет публичный API через `index.ts`.
+A slice should expose a public API through an `index.ts` file.
 
-Пример:
+Example:
 
 ```text
 shared/ui/Button/
@@ -203,17 +203,17 @@ shared/ui/Button/
 export { default } from './Button'
 ```
 
-Использование:
+Usage:
 
 ```tsx
 import Button from '@/shared/ui/Button'
 ```
 
-Не импортируем внутренние файлы слайса в обход его публичного API.
+Do not import internal slice files by bypassing their public API.
 
-## Стили
+## Styling
 
-Компоненты стилизуем преимущественно с помощью классов Tailwind CSS.
+Components should be styled primarily with Tailwind CSS utility classes.
 
 ```tsx
 const Button = ({ children }: ButtonProps) => {
@@ -225,28 +225,28 @@ const Button = ({ children }: ButtonProps) => {
 }
 ```
 
-Глобальные стили и подключение Tailwind находятся в:
+Global styles and the Tailwind import are located in:
 
 ```text
 src/app/styles/index.css
 ```
 
-Общие дизайн-токены проекта находятся в:
+Shared design tokens are located in:
 
 ```text
 src/app/styles/theme.css
 ```
 
-В дизайн-токенах храним:
+Design tokens should contain:
 
-* фирменные цвета;
-* цвета текста и фона;
-* шрифты;
-* радиусы;
-* тени;
-* другие общие визуальные значения.
+* brand colors;
+* text and background colors;
+* fonts;
+* border radii;
+* shadows;
+* other shared visual values.
 
-Пример:
+Example:
 
 ```css
 @theme {
@@ -262,70 +262,70 @@ src/app/styles/theme.css
 }
 ```
 
-После определения токенов используем соответствующие Tailwind-классы:
+After defining the tokens, use the corresponding Tailwind classes:
 
 ```tsx
 <button className="rounded-control bg-primary hover:bg-primary-hover">
-  Создать маршрут
+  Create route
 </button>
 ```
 
-Не дублируем фирменные цвета произвольными значениями в разных компонентах:
+Do not duplicate brand colors as arbitrary values across multiple components:
 
 ```tsx
-// Не рекомендуется
-<button className="bg-[#2563eb]">Создать маршрут</button>
+// Not recommended
+<button className="bg-[#2563eb]">Create route</button>
 ```
 
-Произвольные значения допустимы только для редких локальных случаев, которые не являются частью общей дизайн-системы.
+Arbitrary values are allowed only for rare local cases that are not part of the shared design system.
 
 ## Storybook
 
-Для переиспользуемых UI-компонентов создаём Storybook stories.
+Create Storybook stories for reusable UI components.
 
 ```text
 Button.tsx
 Button.stories.tsx
 ```
 
-Stories создаём для значимых состояний компонента:
+Create stories for meaningful component states:
 
 * Default;
 * Disabled;
 * Loading.
 
-Если компонент имеет визуальные варианты, добавляем отдельные stories:
+If a component has visual variants, create separate stories for them:
 
 * Primary;
 * Secondary;
 * Danger.
 
-`Danger` используется для действий с потенциально разрушительными последствиями, например удаления маршрута.
+The `Danger` variant is intended for actions with potentially destructive consequences, such as deleting a route.
 
-Story не должна дублировать реализацию компонента. Она только передаёт компоненту определённые props и показывает результат.
+A story must not duplicate the component implementation. It should only pass specific props to the component and display the result.
 
-## Тесты
+## Tests
 
-Vitest используем для проверки логики компонентов и функций.
+Use Vitest to test component and function logic.
 
-Тестируем значимое поведение:
+Test meaningful behavior such as:
 
-* обработку пользовательских действий;
-* отображение состояния загрузки;
-* блокировку недоступных действий;
-* условное отображение данных;
-* преобразование данных.
+* handling user actions;
+* displaying loading states;
+* disabling unavailable actions;
+* conditionally displaying data;
+* transforming data.
 
-Не требуется тестировать каждый Tailwind-класс или очевидную статическую разметку.
+There is no need to test every Tailwind class or obvious static markup.
 
-Playwright используем для важных пользовательских сценариев, проходящих через несколько компонентов или страниц.
+Use Playwright for important user flows involving multiple components or pages.
 
-## Автоматическое форматирование
+## Automatic Formatting
 
-ESLint проверяет качество и корректность кода.
+ESLint checks code quality and correctness.
 
-Prettier отвечает за единообразное форматирование.
+Prettier ensures consistent code formatting.
 
-Перед коммитом Husky и lint-staged автоматически проверяют изменённые файлы.
+Before each commit, Husky and lint-staged automatically check the staged files.
 
-Не форматируем код вручную пробелами и переносами, если это может сделать Prettier.
+Do not format code manually with spaces and line breaks when Prettier can handle it automatically.

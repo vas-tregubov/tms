@@ -4,6 +4,10 @@
   --color-primary-hover: #0668ca;
   --color-primary-active: #055bb2;
 
+  /* Destructive actions */
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+
   /* Application surfaces */
   --color-background: #f3f7fb;
   --color-surface: #ffffff;

@@ -1,40 +1,40 @@
 # Code Style
 
-Этот раздел описывает общие правила написания кода в проекте TMS.
+This section describes the general coding conventions used in the TMS project.
 
-- [Frontend Code Style](frontend.md)
-- [Backend Code Style](backend.md)
+* [Frontend Code Style](frontend.md)
+* [Backend Code Style](backend.md)
 
-## Общие правила
+## General Rules
 
-### Язык
+### Language
 
-Весь прикладной код пишется на TypeScript.
+All application code must be written in TypeScript.
 
-### Форматирование
+### Formatting
 
-Код форматируется с помощью Prettier.
+Code is formatted using Prettier.
 
-Не следует вручную форматировать код вопреки настройкам Prettier.
+Do not manually format code in a way that conflicts with the Prettier configuration.
 
-### Линтинг
+### Linting
 
-Код должен проходить ESLint без ошибок.
+All code must pass ESLint checks without errors.
 
-Не следует отключать правила ESLint без объяснения причины.
+Do not disable ESLint rules without explaining the reason.
 
-### Именование
+### Naming
 
-Названия переменных, функций и файлов должны отражать их назначение.
+Variable, function, and file names should clearly describe their purpose.
 
-Не использовать непонятные сокращения.
+Avoid unclear abbreviations.
 
-### Типизация
+### Type Safety
 
-Избегать `any`.
+Avoid using `any`.
 
-Использовать явные типы там, где TypeScript не может корректно вывести их самостоятельно.
+Use explicit types when TypeScript cannot infer them correctly.
 
-### Простота
+### Simplicity
 
-Не создавать абстракции и универсальные решения до появления реальной необходимости.
+Do not introduce abstractions or generic solutions before there is a real need for them.

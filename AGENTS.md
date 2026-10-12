@@ -20,7 +20,7 @@ For backend tasks, also read:
 For UI / Figma tasks, also read:
 
 - docs/design-system/README.md
-- docs/workflows/figma-to-code.md
+- .agents/skills/figma-to-react/SKILL.md
 
 General rules:
 

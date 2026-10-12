@@ -1,2 +1,2 @@
-export { default as RouteStatusBadge } from './ui/RouteStatusBadge'
+export { routeStatusConfig } from './model/routeStatusConfig'
 export type { RouteStatus } from './model/types'

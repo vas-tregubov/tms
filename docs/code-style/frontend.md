@@ -203,6 +203,14 @@ shared/ui/Button/
 export { default } from './Button'
 ```
 
+For shared UI components with a default export, prefer default re-exports in `index.ts`:
+
+```ts
+export { default } from './Component'
+```
+
+Use `export { default as Component } from './Component'` only when there is an explicit reason for a named public export.
+
 Usage:
 
 ```tsx

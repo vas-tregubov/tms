@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
-import moreVertical from '@/shared/assets/icons/more-vertical.svg'
+import MoreVerticalIcon from '@/shared/assets/icons/more-vertical.svg?react'
 import IconButton from '@/shared/ui/icon-button'
 
 const meta = {
@@ -9,7 +9,7 @@ const meta = {
   tags: ['autodocs'],
   args: {
     'aria-label': 'More actions',
-    icon: <img src={moreVertical} alt="" />,
+    icon: <MoreVerticalIcon className="size-5" aria-hidden="true" />,
     variant: 'ghost',
     disabled: false,
   },

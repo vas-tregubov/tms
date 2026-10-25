@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, within } from 'storybook/test'
 
+import AnalyticsIcon from '@/shared/assets/icons/analytics.svg?react'
 import SidebarItem from '@/shared/ui/sidebar-item'
 
 const meta = {
@@ -18,7 +19,7 @@ const meta = {
     href: '#example',
     children: 'Главная',
     active: false,
-    icon: <span className="text-xl leading-none">▥</span>,
+    icon: <AnalyticsIcon className="size-full" aria-hidden="true" />,
   },
   argTypes: {
     icon: { control: false },
@@ -27,7 +28,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A native navigation link. Hover and Focus use real browser states. The icon is a temporary story-only placeholder.',
+          'A native navigation link. Hover and Focus use real browser states. The Analytics icon matches the Figma master.',
       },
     },
   },

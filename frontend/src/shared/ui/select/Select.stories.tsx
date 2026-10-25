@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { expect, userEvent, within } from 'storybook/test'
 
+import ChevronDownIcon from '@/shared/assets/icons/chevron-down.svg?react'
 import Select from '@/shared/ui/select'
 
 const meta = {
@@ -18,9 +19,7 @@ const meta = {
     label: 'Распределительный центр',
     helper: 'Вспомогательный текст',
     defaultValue: '',
-    icon: (
-      <span className="size-2.5 -translate-y-0.5 rotate-45 border-r border-b border-current" />
-    ),
+    icon: <ChevronDownIcon className="size-5" aria-hidden="true" />,
     children: (
       <>
         <option value="">Выберите значение</option>
@@ -39,7 +38,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Open the select by clicking it or using the platform keyboard shortcut. The native popup is rendered by the browser/OS and differs from the Figma dropdown. The chevron is a temporary story-only placeholder.',
+          'Open the select by clicking it or using the platform keyboard shortcut. The native popup is rendered by the browser/OS and differs from the Figma dropdown. The chevron uses the project Icons Library.',
       },
     },
   },

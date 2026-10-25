@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import MoreVerticalIcon from '@/shared/assets/icons/more-vertical.svg?react'
 import IconButton from '@/shared/ui/icon-button'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'
 
@@ -12,7 +13,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Compose Table, TableRow and TableCell with native thead and tbody elements. Hover a data cell to inspect its background. Status badges and the action icon below are story-only placeholders; action controls reuse IconButton.',
+          'Compose Table, TableRow and TableCell with native thead and tbody elements. Hover a data cell to inspect its background. Status badges below are story-only placeholders; action controls reuse IconButton with the project MoreVertical icon.',
       },
     },
   },
@@ -58,7 +59,7 @@ export const WithStatusAndActions: Story = {
     docs: {
       description: {
         story:
-          'TMS mock data with local demonstration status badges and a placeholder icon passed to the existing IconButton. The placeholders will be replaced with the real badge and icon after they are merged. IconButton provides its standard interaction feedback; no action menu is implemented yet.',
+          'TMS mock data with local demonstration status badges and the project MoreVertical icon passed to IconButton. Status badges remain local demonstration placeholders. IconButton provides its standard interaction feedback; no action menu is implemented yet.',
       },
     },
   },
@@ -122,16 +123,7 @@ export const WithStatusAndActions: Story = {
                 <IconButton
                   aria-label={`Действия для рейса ${trip}`}
                   icon={
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="size-5"
-                    >
-                      <circle cx="12" cy="5" r="2" />
-                      <circle cx="12" cy="12" r="2" />
-                      <circle cx="12" cy="19" r="2" />
-                    </svg>
+                    <MoreVerticalIcon className="size-5" aria-hidden="true" />
                   }
                 />
               </div>

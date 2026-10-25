@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 
+import AddIcon from '@/shared/assets/icons/add.svg?react'
 import Button from '@/shared/ui/button'
 
 const meta = {
@@ -31,7 +32,7 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-const icon = <span className="text-base leading-none">+</span>
+const icon = <AddIcon className="size-4" aria-hidden="true" />
 
 export const Primary: Story = {}
 

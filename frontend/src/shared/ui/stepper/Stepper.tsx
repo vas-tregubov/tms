@@ -1,21 +1,13 @@
 import StepperItem from './StepperItem'
 
-type StepperCurrentStep = 1 | 2 | 3 | 4
-
 type StepperProps = {
-  currentStep: StepperCurrentStep
+  currentStep: number
+  items: string[]
 }
 
-const STEPPER_LABELS = [
-  'Основные данные',
-  'Назначение',
-  'Водитель и ТС',
-  'Проверка и сохранение',
-]
-
-const Stepper = ({ currentStep }: StepperProps) => (
+const Stepper = ({ currentStep, items }: StepperProps) => (
   <ol className="flex w-full items-start">
-    {STEPPER_LABELS.map((label, index) => {
+    {items.map((label, index) => {
       const stepNumber = index + 1
       const state =
         stepNumber < currentStep
@@ -26,12 +18,12 @@ const Stepper = ({ currentStep }: StepperProps) => (
 
       return (
         <StepperItem
-          key={label}
+          key={index}
           state={state}
           stepNumber={stepNumber}
           label={label}
           showLeftConnector={index > 0}
-          showRightConnector={index < STEPPER_LABELS.length - 1}
+          showRightConnector={index < items.length - 1}
           isLeftConnectorHighlighted={stepNumber <= currentStep}
           isRightConnectorHighlighted={stepNumber < currentStep}
         />

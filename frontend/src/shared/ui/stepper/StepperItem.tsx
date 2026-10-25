@@ -14,19 +14,22 @@ type StepperItemProps = {
 
 const stateConfig: Record<
   StepperItemState,
-  { circleClassName: string; labelClassName: string }
+  { circleClassName: string; labelClassName: string; stateLabel: string }
 > = {
   completed: {
     circleClassName: 'bg-primary text-surface',
     labelClassName: 'font-normal text-foreground',
+    stateLabel: 'завершено',
   },
   active: {
     circleClassName: 'bg-primary text-surface',
     labelClassName: 'font-medium text-foreground',
+    stateLabel: 'текущий шаг',
   },
   upcoming: {
     circleClassName: 'border border-border bg-surface text-muted',
     labelClassName: 'font-normal text-muted',
+    stateLabel: 'ожидает',
   },
 }
 
@@ -47,7 +50,7 @@ const StepperItem = ({
   isLeftConnectorHighlighted,
   isRightConnectorHighlighted,
 }: StepperItemProps) => {
-  const { circleClassName, labelClassName } = stateConfig[state]
+  const { circleClassName, labelClassName, stateLabel } = stateConfig[state]
 
   return (
     <li
@@ -75,6 +78,7 @@ const StepperItem = ({
         className={`text-center text-sm leading-5 whitespace-nowrap ${labelClassName}`}
       >
         {label}
+        <span className="sr-only"> — {stateLabel}</span>
       </span>
     </li>
   )

@@ -14,7 +14,7 @@ All project paths below are relative to the repository root.
 ## Workflow
 
 1. Inspect the existing implementation, related components, and their usage.
-2. Read `AGENTS.md`, `README.md`, `CONTRIBUTING.md`,
+2. Read `.ai/instructions.md`, `README.md`, `CONTRIBUTING.md`,
    `docs/code-style/README.md`, `docs/code-style/frontend.md`, and
    `docs/design-system/README.md`. Read `docs/domain-model.md` as required
    by project guidelines.
@@ -34,7 +34,7 @@ All project paths below are relative to the repository root.
    - which files will change;
    - what will change;
    - which existing code will be reused.
-9. Wait for user approval before modifying files.
+9. Follow the approval policy in `.ai/instructions.md` before modifying files.
 10. Implement the approved scope without changing unrelated project areas.
 11. After implementation:
     - show the changed files or diff;

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 
 import MoreVerticalIcon from '@/shared/assets/icons/more-vertical.svg?react'
 import IconButton from '@/shared/ui/icon-button'
+import StatusBadge from '@/shared/ui/status-badge'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'
 
 const meta = {
@@ -13,7 +14,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Compose Table, TableRow and TableCell with native thead and tbody elements. Hover a data cell to inspect its background. Status badges below are story-only placeholders; action controls reuse IconButton with the project MoreVertical icon.',
+          'Compose Table, TableRow and TableCell with native thead and tbody elements. Hover a data cell to inspect its background. Status cells use the public StatusBadge component; action controls use IconButton with the project MoreVertical icon.',
       },
     },
   },
@@ -59,7 +60,7 @@ export const WithStatusAndActions: Story = {
     docs: {
       description: {
         story:
-          'TMS mock data with local demonstration status badges and the project MoreVertical icon passed to IconButton. Status badges remain local demonstration placeholders. IconButton provides its standard interaction feedback; no action menu is implemented yet.',
+          'TMS mock data with StatusBadge displaying the Created, Assigned, In Transit, and Completed statuses in Russian. Action controls use IconButton with the project MoreVertical icon and its standard interaction feedback.',
       },
     },
   },
@@ -86,37 +87,29 @@ export const WithStatusAndActions: Story = {
           {
             route: 'РЦ Москва → Тверь',
             trip: 'TR-000124',
-            status: 'Created',
-            badgeClassName: 'bg-status-created-soft text-status-created',
+            status: 'created' as const,
           },
           {
             route: 'РЦ Казань → Чебоксары',
             trip: 'TR-000125',
-            status: 'Assigned',
-            badgeClassName: 'bg-status-assigned-soft text-status-assigned',
+            status: 'assigned' as const,
           },
           {
             route: 'РЦ Москва → Санкт-Петербург',
             trip: 'TR-000126',
-            status: 'In Transit',
-            badgeClassName: 'bg-status-in-transit-soft text-status-in-transit',
+            status: 'intransit' as const,
           },
           {
             route: 'РЦ Екатеринбург → Пермь',
             trip: 'TR-000127',
-            status: 'Completed',
-            badgeClassName: 'bg-status-completed-soft text-status-completed',
+            status: 'completed' as const,
           },
-        ].map(({ route, trip, status, badgeClassName }) => (
+        ].map(({ route, trip, status }) => (
           <TableRow key={trip}>
             <TableCell>{route}</TableCell>
             <TableCell>{trip}</TableCell>
             <TableCell>
-              <span
-                className={`inline-flex h-6 items-center rounded-control px-2 text-xs leading-4 ${badgeClassName}`}
-              >
-                {status}
-              </span>
+              <StatusBadge status={status} />
             </TableCell>
             <TableCell className="hover:bg-surface!">
               <div className="flex justify-center">

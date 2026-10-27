@@ -11,6 +11,16 @@
 
 Changes are added to `develop` through pull requests.
 
+## AI-assisted development
+
+`.ai/` contains canonical AI instructions and skills. Provider-specific adapters
+reference `.ai/` without duplicating project-wide rules. Coding agents may inspect
+and modify code within the approved scope and run relevant checks.
+
+Commits, pushes, merges, and branch deletion are performed manually by a developer.
+Agents provide proposed commit messages and exact Git commands instead.
+Husky and lint-staged remain part of the manual commit workflow.
+
 ## Project setup
 
 From the repository root, install dependencies and configure Git hooks:

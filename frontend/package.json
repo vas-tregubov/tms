@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
     "test": "vitest run --project=app",
     "test:watch": "vitest --project=app",
     "lint": "eslint .",

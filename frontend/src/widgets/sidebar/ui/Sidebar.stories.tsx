@@ -1,6 +1,10 @@
+import type { ComponentProps } from 'react'
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useArgs } from 'storybook/preview-api'
 
 import Sidebar from '@/widgets/sidebar'
+
+import { bottomItems, mainItems } from '../model/navigation'
 
 const meta = {
   title: 'Widgets/Sidebar',
@@ -52,4 +56,27 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default: Story = {
+  render: function InteractiveSidebar() {
+    const [args, updateArgs] = useArgs<ComponentProps<typeof Sidebar>>()
+
+    return (
+      <div
+        className="h-full"
+        onClick={(event) => {
+          if (!(event.target instanceof Element)) return
+          const link = event.target.closest('a')
+          if (!link) return
+          const item = [...mainItems, ...bottomItems].find(
+            ({ id }) => args.hrefs[id] === link.getAttribute('href'),
+          )
+          if (!item) return
+          event.preventDefault()
+          updateArgs({ activeItem: item.id })
+        }}
+      >
+        <Sidebar {...args} />
+      </div>
+    )
+  },
+}

@@ -186,6 +186,11 @@ shared must not import from any other FSD layer
 
 Slices within the same layer must not depend directly on one another.
 
+Exception: entity slices may use `import type` through another entity slice's
+public `index.ts` only for type-level relations explicitly defined in
+`docs/domain-model.md`. Runtime imports between entity slices remain prohibited.
+Do not duplicate domain models or move them into `shared` to bypass this rule.
+
 A slice should expose a public API through an `index.ts` file.
 
 Example:

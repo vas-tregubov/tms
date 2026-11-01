@@ -14,6 +14,7 @@ Before making changes, read:
 - `docs/domain-model.md`
 
 For frontend tasks, also read `docs/code-style/frontend.md`.
+For frontend testing changes, follow `docs/testing-strategy/README.md`.
 For backend tasks, also read `docs/code-style/backend.md`.
 For UI / Figma tasks, also read `docs/design-system/README.md` and
 `.ai/skills/figma-to-react/SKILL.md`.

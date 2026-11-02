@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { useGetRoutesQuery } from '@/entities/route'
 import AddIcon from '@/shared/assets/icons/add.svg?react'
@@ -19,11 +19,14 @@ const PAGE_SIZE = 5
 const RoutesPage = () => {
   const navigate = useNavigate()
   const { data: routes = [], isLoading, isError, refetch } = useGetRoutesQuery()
-  const [search, setSearch] = useState('')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [status, setStatus] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search = searchParams.get('search') ?? ''
+  const startDate = searchParams.get('startDate') ?? ''
+  const endDate = searchParams.get('endDate') ?? ''
+  const status = searchParams.get('status') ?? ''
+  const requestedPage = Number(searchParams.get('page') ?? '1')
+  const currentPage =
+    Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
   const [dateRangeResetKey, setDateRangeResetKey] = useState(0)
   const filters = { search, startDate, endDate, status }
   const filteredRoutes = filterRoutes(routes, filters)
@@ -31,6 +34,22 @@ const RoutesPage = () => {
   const page = Math.min(currentPage, Math.max(1, pageCount))
   const offset = (page - 1) * PAGE_SIZE
   const visibleRoutes = filteredRoutes.slice(offset, offset + PAGE_SIZE)
+
+  const updateFilter = (
+    name: 'search' | 'startDate' | 'endDate' | 'status',
+    value: string,
+  ) => {
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous)
+        if (value) next.set(name, value)
+        else next.delete(name)
+        next.delete('page')
+        return next
+      },
+      { replace: true },
+    )
+  }
 
   return (
     <section
@@ -67,28 +86,26 @@ const RoutesPage = () => {
       <RoutesFilters
         filters={filters}
         dateRangeResetKey={dateRangeResetKey}
-        onSearchChange={(value) => {
-          setSearch(value)
-          setCurrentPage(1)
-        }}
-        onStartDateChange={(value) => {
-          setStartDate(value)
-          setCurrentPage(1)
-        }}
-        onEndDateChange={(value) => {
-          setEndDate(value)
-          setCurrentPage(1)
-        }}
-        onStatusChange={(value) => {
-          setStatus(value)
-          setCurrentPage(1)
-        }}
+        onSearchChange={(value) => updateFilter('search', value)}
+        onStartDateChange={(value) => updateFilter('startDate', value)}
+        onEndDateChange={(value) => updateFilter('endDate', value)}
+        onStatusChange={(value) => updateFilter('status', value)}
         onReset={() => {
-          setSearch('')
-          setStartDate('')
-          setEndDate('')
-          setStatus('')
-          setCurrentPage(1)
+          setSearchParams(
+            (previous) => {
+              const next = new URLSearchParams(previous)
+              for (const name of [
+                'search',
+                'startDate',
+                'endDate',
+                'status',
+                'page',
+              ])
+                next.delete(name)
+              return next
+            },
+            { replace: true },
+          )
           // Remount only on reset to clear DateInput's internal validity messages.
           setDateRangeResetKey((key) => key + 1)
         }}
@@ -122,7 +139,17 @@ const RoutesPage = () => {
               aria-label="Страницы маршрутов"
               currentPage={page}
               pageCount={pageCount}
-              onPageChange={setCurrentPage}
+              onPageChange={(nextPage) =>
+                setSearchParams(
+                  (previous) => {
+                    const next = new URLSearchParams(previous)
+                    if (nextPage === 1) next.delete('page')
+                    else next.set('page', String(nextPage))
+                    return next
+                  },
+                  { replace: true },
+                )
+              }
               previousIcon={<ChevronLeftIcon className="size-5" />}
               nextIcon={<ChevronRightIcon className="size-5" />}
             />

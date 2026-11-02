@@ -88,28 +88,32 @@ export const WithStatusAndActions: Story = {
             route: 'РЦ Москва → Тверь',
             trip: 'TR-000124',
             status: 'created' as const,
+            label: 'Создан',
           },
           {
             route: 'РЦ Казань → Чебоксары',
             trip: 'TR-000125',
             status: 'assigned' as const,
+            label: 'Назначен',
           },
           {
             route: 'РЦ Москва → Санкт-Петербург',
             trip: 'TR-000126',
             status: 'intransit' as const,
+            label: 'В пути',
           },
           {
             route: 'РЦ Екатеринбург → Пермь',
             trip: 'TR-000127',
             status: 'completed' as const,
+            label: 'Завершён',
           },
-        ].map(({ route, trip, status }) => (
+        ].map(({ route, trip, status, label }) => (
           <TableRow key={trip}>
             <TableCell>{route}</TableCell>
             <TableCell>{trip}</TableCell>
             <TableCell>
-              <StatusBadge status={status} />
+              <StatusBadge status={status}>{label}</StatusBadge>
             </TableCell>
             <TableCell className="hover:bg-surface!">
               <div className="flex justify-center">

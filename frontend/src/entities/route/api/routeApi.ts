@@ -2,9 +2,11 @@ import { baseApi } from '@/shared/api'
 
 import type { Route } from '../model/types'
 import { mockRoutes } from './mockRoutes'
+import { mockRouteTimelines } from './mockRouteTimelines'
+import type { RouteTimelineItem } from './types'
 
 const waitForMockResponse = () =>
-  new Promise<void>((resolve) => setTimeout(resolve, 150))
+  new Promise<void>((resolve) => setTimeout(resolve, 1500))
 
 const routeApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
@@ -23,7 +25,22 @@ const routeApi = baseApi.injectEndpoints({
           : { error: { status: 404, message: 'Маршрут не найден' } }
       },
     }),
+    getRouteTimeline: build.query<RouteTimelineItem[], string>({
+      queryFn: async (id) => {
+        await waitForMockResponse()
+        const timeline = Object.hasOwn(mockRouteTimelines, id)
+          ? mockRouteTimelines[id]
+          : undefined
+        return timeline
+          ? { data: timeline }
+          : { error: { status: 404, message: 'Статусы маршрута не найдены' } }
+      },
+    }),
   }),
 })
 
-export const { useGetRoutesQuery, useGetRouteByIdQuery } = routeApi
+export const {
+  useGetRoutesQuery,
+  useGetRouteByIdQuery,
+  useGetRouteTimelineQuery,
+} = routeApi

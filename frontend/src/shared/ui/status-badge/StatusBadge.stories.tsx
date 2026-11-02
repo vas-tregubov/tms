@@ -8,6 +8,7 @@ const meta = {
   tags: ['autodocs'],
   args: {
     status: 'created',
+    children: 'Создан',
   },
   argTypes: {
     status: {
@@ -24,13 +25,13 @@ type Story = StoryObj<typeof meta>
 export const Created: Story = {}
 
 export const Assigned: Story = {
-  args: { status: 'assigned' },
+  args: { status: 'assigned', children: 'Назначен' },
 }
 
 export const InTransit: Story = {
-  args: { status: 'intransit' },
+  args: { status: 'intransit', children: 'В пути' },
 }
 
 export const Completed: Story = {
-  args: { status: 'completed' },
+  args: { status: 'completed', children: 'Завершён' },
 }

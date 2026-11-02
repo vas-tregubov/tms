@@ -26,6 +26,7 @@ export const mockRoutes: Route[] = [
     startTime: '09:00',
     endTime: '10:30',
     status: 'assigned',
+    comment: 'Температурный режим +2…+6 °C',
   },
   {
     id: 'route-002',
@@ -46,5 +47,6 @@ export const mockRoutes: Route[] = [
     startTime: '09:00',
     endTime: '10:30',
     status: 'completed',
+    comment: 'Доставка завершена, груз принят.',
   },
 ]

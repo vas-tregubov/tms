@@ -44,7 +44,19 @@ it('loads consistent Routes and Trips lists asynchronously through the app store
   expect(trips.length).toBeGreaterThan(0)
   for (const trip of trips) {
     for (const route of trip.routes) {
-      expect(route).toEqual(routes.find((item) => item.id === route.id))
+      const listedRoute = routes.find((item) => item.id === route.id)
+      expect(listedRoute).toBeDefined()
+      // Nested Trip snapshots may omit optional detail-only fields such as comment.
+      expect(route).toMatchObject({
+        id: listedRoute!.id,
+        number: listedRoute!.number,
+        date: listedRoute!.date,
+        startPoint: listedRoute!.startPoint,
+        endPoint: listedRoute!.endPoint,
+        startTime: listedRoute!.startTime,
+        endTime: listedRoute!.endTime,
+        status: listedRoute!.status,
+      })
     }
   }
 })

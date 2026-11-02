@@ -9,5 +9,6 @@ export type Route = {
   endPoint: DistributionCenter | LogisticsPoint
   startTime: string
   endTime: string
+  comment?: string
   status: string
 }

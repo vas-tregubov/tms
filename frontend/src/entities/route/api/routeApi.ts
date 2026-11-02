@@ -6,7 +6,7 @@ import { mockRouteTimelines } from './mockRouteTimelines'
 import type { RouteTimelineItem } from './types'
 
 const waitForMockResponse = () =>
-  new Promise<void>((resolve) => setTimeout(resolve, 1500))
+  new Promise<void>((resolve) => setTimeout(resolve, 150))
 
 const routeApi = baseApi.injectEndpoints({
   endpoints: (build) => ({

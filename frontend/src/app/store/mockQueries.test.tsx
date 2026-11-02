@@ -1,0 +1,99 @@
+import type { PropsWithChildren } from 'react'
+import { act, cleanup, renderHook } from '@testing-library/react'
+import { Provider } from 'react-redux'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+
+import { useGetRouteByIdQuery, useGetRoutesQuery } from '@/entities/route'
+import { useGetTripByIdQuery, useGetTripsQuery } from '@/entities/trip'
+import { baseApi } from '@/shared/api'
+
+import { store } from './store'
+
+const wrapper = ({ children }: PropsWithChildren) => (
+  <Provider store={store}>{children}</Provider>
+)
+
+beforeEach(() => vi.useFakeTimers())
+
+afterEach(() => {
+  cleanup()
+  store.dispatch(baseApi.util.resetApiState())
+  vi.clearAllTimers()
+  vi.useRealTimers()
+})
+
+it('loads consistent Routes and Trips lists asynchronously through the app store', async () => {
+  const { result } = renderHook(
+    () => ({ routes: useGetRoutesQuery(), trips: useGetTripsQuery() }),
+    { wrapper },
+  )
+
+  expect(result.current.routes.isLoading).toBe(true)
+  expect(result.current.trips.isLoading).toBe(true)
+  expect(result.current.routes.data).toBeUndefined()
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200)
+  })
+
+  expect(result.current.routes.isSuccess).toBe(true)
+  expect(result.current.trips.isSuccess).toBe(true)
+  const routes = result.current.routes.data!
+  const trips = result.current.trips.data!
+  expect(routes.length).toBeGreaterThan(0)
+  expect(trips.length).toBeGreaterThan(0)
+  for (const trip of trips) {
+    for (const route of trip.routes) {
+      expect(route).toEqual(routes.find((item) => item.id === route.id))
+    }
+  }
+})
+
+it('returns the entity requested by its opaque Route or Trip ID', async () => {
+  const { result } = renderHook(
+    () => ({
+      route: useGetRouteByIdQuery('route-002'),
+      trip: useGetTripByIdQuery('trip-002'),
+    }),
+    { wrapper },
+  )
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200)
+  })
+
+  expect(result.current.route.isSuccess).toBe(true)
+  expect(result.current.route.data?.id).toBe('route-002')
+  expect(result.current.trip.isSuccess).toBe(true)
+  expect(result.current.trip.data?.id).toBe('trip-002')
+})
+
+it('returns deterministic not-found errors instead of successful undefined data', async () => {
+  const { result } = renderHook(
+    () => ({
+      route: useGetRouteByIdQuery('missing-route'),
+      trip: useGetTripByIdQuery('missing-trip'),
+    }),
+    { wrapper },
+  )
+
+  expect(result.current.route.isLoading).toBe(true)
+  expect(result.current.trip.isLoading).toBe(true)
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200)
+  })
+
+  expect(result.current.route.isError).toBe(true)
+  expect(result.current.route.error).toEqual({
+    status: 404,
+    message: 'Маршрут не найден',
+  })
+  expect(result.current.route.data).toBeUndefined()
+  expect(result.current.trip.isError).toBe(true)
+  expect(result.current.trip.error).toEqual({
+    status: 404,
+    message: 'Рейс не найден',
+  })
+  expect(result.current.trip.data).toBeUndefined()
+})

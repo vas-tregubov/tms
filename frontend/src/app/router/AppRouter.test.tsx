@@ -1,8 +1,24 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import {
+  fireEvent,
+  render as renderView,
+  screen,
+  within,
+} from '@testing-library/react'
+import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
-import { expect, it } from 'vitest'
+import { beforeEach, expect, it } from 'vitest'
 
 import AppRouter from '@/app/router'
+import { store } from '@/app/store'
+import { baseApi } from '@/shared/api'
+
+beforeEach(() => {
+  store.dispatch(baseApi.util.resetApiState())
+})
+
+const render = (ui: ReactNode) =>
+  renderView(<Provider store={store}>{ui}</Provider>)
 
 it('opens Home as the application entry point', () => {
   render(

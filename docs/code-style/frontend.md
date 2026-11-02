@@ -122,6 +122,16 @@ Redux and other global state management tools do not replace props.
 
 Use props for local component data and event handlers. Use global state only for data that is genuinely required by multiple independent parts of the application.
 
+## State Ownership
+
+- React local state owns local UI state.
+- React Router owns URL and navigation state, including the active Sidebar item.
+- Redux Toolkit slices own shared client state only when a concrete need exists.
+- RTK Query owns server state; do not duplicate it in ordinary Redux slices.
+
+Optimistic mutations must update the RTK Query cache rather than maintain a
+separate copy of server state in a Redux slice.
+
 ## Imports and Aliases
 
 Use the `@` alias for imports from `src`:

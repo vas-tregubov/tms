@@ -29,12 +29,17 @@
 ## Route
 
 - `id`: string
+- `number`: string
 - `date`: string
 - `startPoint`: DistributionCenter | LogisticsPoint
 - `endPoint`: DistributionCenter | LogisticsPoint
 - `startTime`: string
 - `endTime`: string
 - `status`: string
+
+`id` is the technical opaque identifier used for routing and lookups.
+`number` is the business/display number shown in the UI, for example `MR-000123`.
+These values are independent; neither is derived from the other.
 
 ## Driver
 

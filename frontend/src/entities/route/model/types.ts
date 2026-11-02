@@ -3,6 +3,7 @@ import type { LogisticsPoint } from '@/entities/logistics-point'
 
 export type Route = {
   id: string
+  number: string
   date: string
   startPoint: DistributionCenter | LogisticsPoint
   endPoint: DistributionCenter | LogisticsPoint

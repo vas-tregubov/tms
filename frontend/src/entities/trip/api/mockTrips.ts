@@ -41,6 +41,7 @@ export const mockTrips: Trip[] = [
     routes: [
       {
         id: 'route-001',
+        number: 'MR-000123',
         date: '2026-11-02',
         startPoint: distributionCenter,
         endPoint: logisticsPoint,
@@ -50,6 +51,7 @@ export const mockTrips: Trip[] = [
       },
       {
         id: 'route-002',
+        number: 'MR-000122',
         date: '2026-11-02',
         startPoint: logisticsPoint,
         endPoint: distributionCenter,
@@ -70,6 +72,7 @@ export const mockTrips: Trip[] = [
     routes: [
       {
         id: 'route-003',
+        number: 'MR-000121',
         date: '2026-11-01',
         startPoint: distributionCenter,
         endPoint: logisticsPoint,

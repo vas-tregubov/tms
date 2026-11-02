@@ -1,0 +1,137 @@
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
+import { expect, it } from 'vitest'
+
+import AppRouter from '@/app/router'
+
+it('opens Home as the application entry point', () => {
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <AppRouter />
+    </MemoryRouter>,
+  )
+
+  expect(screen.getByRole('heading', { name: 'Главная' })).toBeTruthy()
+  expect(
+    screen.getByRole('link', { name: 'Главная' }).getAttribute('aria-current'),
+  ).toBe('page')
+  expect(
+    screen.getByRole('link', { name: 'Маршруты' }).hasAttribute('aria-current'),
+  ).toBe(false)
+})
+
+it.each([
+  [
+    '/routes/route_alpha-42/edit',
+    'Редактирование маршрута',
+    'route_alpha-42',
+    'Маршруты',
+  ],
+  ['/trips/trip_beta-7', 'Рейс', 'trip_beta-7', 'Рейсы'],
+])(
+  'renders %s inside the shell with its opaque parameter',
+  (url, title, id, section) => {
+    render(
+      <MemoryRouter initialEntries={[url]}>
+        <AppRouter />
+      </MemoryRouter>,
+    )
+
+    const main = within(screen.getByRole('main'))
+    expect(main.getByRole('heading', { name: title })).toBeTruthy()
+    expect(main.getByText(`ID: ${id}`)).toBeTruthy()
+    expect(screen.getByRole('banner')).toBeTruthy()
+    expect(
+      screen.getByRole('link', { name: section }).getAttribute('aria-current'),
+    ).toBe('page')
+  },
+)
+
+it('renders route creation rather than treating new as a route ID', () => {
+  render(
+    <MemoryRouter initialEntries={['/routes/new']}>
+      <AppRouter />
+    </MemoryRouter>,
+  )
+
+  expect(
+    screen.getByRole('heading', { name: 'Создание маршрута' }),
+  ).toBeTruthy()
+  expect(screen.queryByText('ID: new')).toBeNull()
+  expect(
+    screen.getByRole('link', { name: 'Маршруты' }).getAttribute('aria-current'),
+  ).toBe('page')
+})
+
+it('keeps login outside the application shell', () => {
+  render(
+    <MemoryRouter initialEntries={['/login']}>
+      <AppRouter />
+    </MemoryRouter>,
+  )
+
+  expect(screen.getByRole('heading', { name: 'Вход' })).toBeTruthy()
+  expect(screen.queryByRole('banner')).toBeNull()
+  expect(
+    screen.queryByRole('navigation', { name: 'Основная навигация' }),
+  ).toBeNull()
+})
+
+it('navigates through both Sidebar groups while preserving the shell', async () => {
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <AppRouter />
+    </MemoryRouter>,
+  )
+
+  const header = screen.getByRole('banner')
+  const home = screen.getByRole('link', { name: 'Главная' })
+  const routes = screen.getByRole('link', { name: 'Маршруты' })
+  expect(home.getAttribute('aria-current')).toBe('page')
+
+  fireEvent.click(routes)
+
+  expect(await screen.findByRole('heading', { name: 'Маршруты' })).toBeTruthy()
+  expect(routes.getAttribute('aria-current')).toBe('page')
+  expect(home.hasAttribute('aria-current')).toBe(false)
+  const trips = screen.getByRole('link', { name: 'Рейсы' })
+  expect(trips.getAttribute('href')).toBe('/trips')
+  fireEvent.click(trips)
+
+  expect(await screen.findByRole('heading', { name: 'Рейсы' })).toBeTruthy()
+  expect(trips.getAttribute('aria-current')).toBe('page')
+  expect(
+    screen.getByRole('link', { name: 'Маршруты' }).hasAttribute('aria-current'),
+  ).toBe(false)
+
+  fireEvent.click(screen.getByRole('link', { name: 'Настройки' }))
+
+  expect(await screen.findByRole('heading', { name: 'Настройки' })).toBeTruthy()
+  expect(
+    screen
+      .getByRole('link', { name: 'Настройки' })
+      .getAttribute('aria-current'),
+  ).toBe('page')
+  expect(trips.hasAttribute('aria-current')).toBe(false)
+  fireEvent.click(home)
+
+  expect(await screen.findByRole('heading', { name: 'Главная' })).toBeTruthy()
+  expect(home.getAttribute('aria-current')).toBe('page')
+  const navigation = within(
+    screen.getByRole('navigation', { name: 'Основная навигация' }),
+  )
+  expect(navigation.getAllByRole('link', { current: 'page' })).toHaveLength(1)
+  expect(screen.getByRole('banner')).toBe(header)
+})
+
+it('shows a not-found placeholder for an unknown URL', () => {
+  render(
+    <MemoryRouter initialEntries={['/missing']}>
+      <AppRouter />
+    </MemoryRouter>,
+  )
+
+  expect(
+    screen.getByRole('heading', { name: 'Страница не найдена' }),
+  ).toBeTruthy()
+})

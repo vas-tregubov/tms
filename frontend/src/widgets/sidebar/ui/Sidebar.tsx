@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react'
+
 import SidebarItem from '@/shared/ui/sidebar-item'
 
 import {
@@ -9,9 +11,10 @@ import {
 type SidebarProps = {
   hrefs: Record<SidebarSection, string>
   activeItem?: SidebarSection
+  renderLink?: ComponentProps<typeof SidebarItem>['renderLink']
 }
 
-const Sidebar = ({ hrefs, activeItem }: SidebarProps) => (
+const Sidebar = ({ hrefs, activeItem, renderLink }: SidebarProps) => (
   <nav
     aria-label="Основная навигация"
     className="flex h-full min-h-0 w-60 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-surface py-3"
@@ -21,6 +24,7 @@ const Sidebar = ({ hrefs, activeItem }: SidebarProps) => (
         <li key={id}>
           <SidebarItem
             href={hrefs[id]}
+            renderLink={renderLink}
             active={activeItem === id}
             icon={
               <Icon
@@ -39,6 +43,7 @@ const Sidebar = ({ hrefs, activeItem }: SidebarProps) => (
         <li key={id}>
           <SidebarItem
             href={hrefs[id]}
+            renderLink={renderLink}
             active={activeItem === id}
             icon={
               <Icon

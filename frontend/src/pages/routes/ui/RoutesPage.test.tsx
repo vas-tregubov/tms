@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { useGetRoutesQuery } from '@/entities/route'
+import { useGetRoutesQuery, type Route } from '@/entities/route'
 import { baseApi } from '@/shared/api'
 
 import RoutesPage from './RoutesPage'
@@ -38,6 +38,31 @@ const renderRoutes = () =>
     </Provider>,
   )
 
+const paginationRoutes: Route[] = Array.from({ length: 7 }, (_, index) => ({
+  id: `pagination-route-${index + 1}`,
+  number: `MR-90000${index + 1}`,
+  date: index < 2 ? '2026-11-01' : '2026-11-02',
+  startPoint: {
+    id: 'test-start',
+    name: 'Тестовый РЦ',
+    address: 'Складская, 1',
+  },
+  endPoint: { id: 'test-end', name: 'Тестовая точка', address: 'Складская, 2' },
+  startTime: '09:00',
+  endTime: '10:00',
+  status: index < 2 ? 'assigned' : 'created',
+}))
+
+const renderPaginationRoutes = () => {
+  vi.mocked(useGetRoutesQuery).mockReturnValue({
+    data: paginationRoutes,
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+  } as ReturnType<typeof useGetRoutesQuery>)
+  return renderRoutes()
+}
+
 beforeEach(() => {
   store.dispatch(baseApi.util.resetApiState())
   vi.mocked(useGetRoutesQuery).mockImplementation(actual.useGetRoutesQuery)
@@ -64,6 +89,138 @@ it('loads route data and displays business numbers', async () => {
     screen.getByRole('button', { name: 'Next page' }).hasAttribute('disabled'),
   ).toBe(true)
 })
+
+it('renders Home as a router link and keeps Routes as the current breadcrumb', () => {
+  renderPaginationRoutes()
+  const breadcrumbs = within(
+    screen.getByRole('navigation', { name: 'Хлебные крошки' }),
+  )
+  const home = breadcrumbs.getByRole('link', { name: 'Главная' })
+  expect(home.getAttribute('href')).toBe('/')
+  expect(breadcrumbs.queryByRole('link', { name: 'Маршруты' })).toBeNull()
+  expect(breadcrumbs.getByText('Маршруты').getAttribute('aria-current')).toBe(
+    'page',
+  )
+
+  fireEvent.click(home)
+
+  expect(screen.getByLabelText('Текущий URL').textContent).toBe('/')
+})
+
+it('shows five routes on page one and the remaining two on page two', () => {
+  renderPaginationRoutes()
+  const table = within(screen.getByRole('table', { name: 'Маршруты' }))
+  const pagination = within(
+    screen.getByRole('navigation', { name: 'Страницы маршрутов' }),
+  )
+  const next = pagination.getByRole('button', { name: 'Next page' })
+  const previous = pagination.getByRole('button', { name: 'Previous page' })
+
+  expect(table.getAllByRole('row')).toHaveLength(6)
+  expect(table.getAllByRole('link').map((link) => link.textContent)).toEqual([
+    'MR-900001',
+    'MR-900002',
+    'MR-900003',
+    'MR-900004',
+    'MR-900005',
+  ])
+  expect(screen.getByText('Показано 1–5 из 7 маршрутов')).toBeTruthy()
+  expect(next.hasAttribute('disabled')).toBe(false)
+  expect(previous.hasAttribute('disabled')).toBe(true)
+
+  fireEvent.click(next)
+
+  expect(table.getAllByRole('row')).toHaveLength(3)
+  expect(table.getAllByRole('link').map((link) => link.textContent)).toEqual([
+    'MR-900006',
+    'MR-900007',
+  ])
+  for (const route of paginationRoutes.slice(0, 5)) {
+    expect(table.queryByRole('link', { name: route.number })).toBeNull()
+  }
+  expect(screen.getByText('Показано 6–7 из 7 маршрутов')).toBeTruthy()
+  expect(
+    pagination.getByRole('button', { name: '2' }).getAttribute('aria-current'),
+  ).toBe('page')
+  expect(previous.hasAttribute('disabled')).toBe(false)
+  expect(next.hasAttribute('disabled')).toBe(true)
+
+  fireEvent.click(previous)
+
+  expect(screen.getByText('Показано 1–5 из 7 маршрутов')).toBeTruthy()
+  expect(table.getAllByRole('link').map((link) => link.textContent)).toEqual([
+    'MR-900001',
+    'MR-900002',
+    'MR-900003',
+    'MR-900004',
+    'MR-900005',
+  ])
+})
+
+it.each([
+  {
+    filter: 'search',
+    label: 'Поиск',
+    value: 'MR-900001',
+    expected: ['MR-900001'],
+  },
+  {
+    filter: 'status',
+    label: 'Статус',
+    value: 'assigned',
+    expected: ['MR-900001', 'MR-900002'],
+  },
+  {
+    filter: 'start date',
+    label: 'Начальная дата',
+    value: '2026-11-02',
+    expected: ['MR-900003', 'MR-900004', 'MR-900005', 'MR-900006', 'MR-900007'],
+  },
+  {
+    filter: 'end date',
+    label: 'Конечная дата',
+    value: '2026-11-01',
+    expected: ['MR-900001', 'MR-900002'],
+  },
+])(
+  'returns to page one when the $filter narrows the result',
+  ({ label, value, expected }) => {
+    renderPaginationRoutes()
+    const pagination = within(
+      screen.getByRole('navigation', { name: 'Страницы маршрутов' }),
+    )
+    fireEvent.click(pagination.getByRole('button', { name: 'Next page' }))
+    expect(screen.getByText('Показано 6–7 из 7 маршрутов')).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText(label), { target: { value } })
+
+    const table = within(screen.getByRole('table', { name: 'Маршруты' }))
+    expect(table.getAllByRole('link').map((link) => link.textContent)).toEqual(
+      expected,
+    )
+    expect(table.getAllByRole('row')).toHaveLength(expected.length + 1)
+    expect(
+      screen.getByText(
+        `Показано 1–${expected.length} из ${expected.length} маршрутов`,
+      ),
+    ).toBeTruthy()
+    expect(
+      pagination
+        .getByRole('button', { name: '1' })
+        .getAttribute('aria-current'),
+    ).toBe('page')
+    expect(
+      pagination
+        .getByRole('button', { name: 'Previous page' })
+        .hasAttribute('disabled'),
+    ).toBe(true)
+    expect(
+      pagination
+        .getByRole('button', { name: 'Next page' })
+        .hasAttribute('disabled'),
+    ).toBe(true)
+  },
+)
 
 it('searches by business number or point, clears the search and distinguishes no results', async () => {
   renderRoutes()

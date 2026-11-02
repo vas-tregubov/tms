@@ -17,7 +17,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'The last item is the current page. Items with href render as links. Long labels are truncated with an ellipsis; the full text is available in the title.',
+          'The last item is always non-interactive current-page text, even when it has an href. Earlier items with href render as native links by default. An optional renderLink receives anchor props for router integration owned by the consumer. Long labels are truncated with an ellipsis; the full text is available in the title.',
       },
     },
   },

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { useGetRoutesQuery } from '@/entities/route'
 import AddIcon from '@/shared/assets/icons/add.svg?react'
@@ -41,9 +41,10 @@ const RoutesPage = () => {
         <Breadcrumbs
           aria-label="Хлебные крошки"
           items={[
-            { id: 'home', label: 'Главная' },
+            { id: 'home', label: 'Главная', href: '/' },
             { id: 'routes', label: 'Маршруты' },
           ]}
+          renderLink={({ href, ...props }) => <Link {...props} to={href} />}
         />
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">

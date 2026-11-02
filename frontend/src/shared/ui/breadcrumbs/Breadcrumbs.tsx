@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react'
+import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
 
 import ChevronRightIcon from '@/shared/assets/icons/chevron-right.svg?react'
 
@@ -10,10 +10,14 @@ type BreadcrumbsItem = {
 
 type BreadcrumbsProps = Omit<HTMLAttributes<HTMLElement>, 'children'> & {
   items: BreadcrumbsItem[]
+  renderLink?: (
+    props: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string },
+  ) => ReactNode
 }
 
 const Breadcrumbs = ({
   items,
+  renderLink,
   className = '',
   'aria-label': ariaLabel = 'Breadcrumbs',
   ...props
@@ -27,6 +31,15 @@ const Breadcrumbs = ({
       <ol className="flex min-w-0 items-center gap-1 text-sm leading-5">
         {items.map(({ id, label, href }, index) => {
           const isCurrent = index === items.length - 1
+          const linkProps = href
+            ? {
+                href,
+                title: label,
+                className:
+                  'max-w-48 min-w-0 cursor-pointer truncate rounded-control font-normal text-muted no-underline hover:text-foreground focus-visible:outline-1 focus-visible:outline-primary',
+                children: label,
+              }
+            : undefined
 
           return (
             <li
@@ -46,14 +59,12 @@ const Breadcrumbs = ({
                 >
                   {label}
                 </span>
-              ) : href ? (
-                <a
-                  href={href}
-                  title={label}
-                  className="max-w-48 min-w-0 truncate rounded-control font-normal text-muted no-underline hover:text-foreground focus-visible:outline-1 focus-visible:outline-primary"
-                >
-                  {label}
-                </a>
+              ) : linkProps ? (
+                renderLink ? (
+                  renderLink(linkProps)
+                ) : (
+                  <a {...linkProps} />
+                )
               ) : (
                 <span
                   title={label}

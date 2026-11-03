@@ -17,9 +17,9 @@ const NotificationTrigger = ({
     aria-label="Уведомления"
     icon={
       hasUnread ? (
-        <BellNewIcon aria-hidden="true" className="size-6 shrink-0" />
+        <BellNewIcon aria-hidden="true" className="size-[30px] shrink-0" />
       ) : (
-        <BellIcon aria-hidden="true" className="size-6 shrink-0" />
+        <BellIcon aria-hidden="true" className="size-[30px] shrink-0" />
       )
     }
     onClick={onClick}

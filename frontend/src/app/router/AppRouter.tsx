@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router'
 
+import CreateRoutePage from '@/pages/create-route'
 import PlaceholderPage from '@/pages/placeholder'
 import RoutesPage from '@/pages/routes'
 import RouteDetailsPage from '@/pages/route-details'
@@ -20,10 +21,7 @@ const AppRouter = () => (
       <Route index element={<PlaceholderPage title="Главная" />} />
       <Route path="routes">
         <Route index element={<RoutesPage />} />
-        <Route
-          path="new"
-          element={<PlaceholderPage title="Создание маршрута" />}
-        />
+        <Route path="new" element={<CreateRoutePage />} />
         <Route path=":routeId" element={<RouteDetailsPage />} />
         <Route
           path=":routeId/edit"

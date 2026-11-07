@@ -51,3 +51,27 @@ export const resetMockRouteSource = () => {
   routes = mockRoutes
   sequence = 0
 }
+
+// Mock-only batch write: preparation validates everything; commit cannot partially fail.
+export const prepareMockRouteAssignment = (ids: string[]) => {
+  if (!ids.length || new Set(ids).size !== ids.length)
+    throw { status: 400, message: 'Выберите маршруты без повторений.' }
+  const selected = ids.map((id) => {
+    const route = routes.find((item) => item.id === id)
+    if (!route) throw { status: 404, message: 'Выбранный маршрут не найден.' }
+    if (route.status !== 'created')
+      throw {
+        status: 409,
+        message: `Маршрут ${route.number} уже недоступен для назначения.`,
+      }
+    return { ...route, status: 'assigned' }
+  })
+  const replacements = new Map(selected.map((route) => [route.id, route]))
+  const next = routes.map((route) => replacements.get(route.id) ?? route)
+  return {
+    routes: selected,
+    commit: () => {
+      routes = next
+    },
+  }
+}

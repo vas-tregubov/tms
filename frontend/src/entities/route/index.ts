@@ -20,3 +20,6 @@ export { getRouteFormChanges } from './lib/getRouteFormChanges'
 export { getRouteTimelineProgress } from './lib/getRouteTimelineProgress'
 
 export { default as RouteTimeHelp } from './ui/RouteTimeHelp'
+
+// Temporary mock use-case boundary, not for UI consumers.
+export { prepareMockRouteAssignment } from './api/mockRouteSource'

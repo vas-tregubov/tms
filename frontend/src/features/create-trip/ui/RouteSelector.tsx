@@ -1,0 +1,259 @@
+import { useState } from 'react'
+
+import { getRouteStatusOption, useGetRoutesQuery } from '@/entities/route'
+import Button from '@/shared/ui/button'
+import DateRange from '@/shared/ui/date-range'
+import Loader from '@/shared/ui/loader'
+import Modal from '@/shared/ui/modal'
+import SearchInput from '@/shared/ui/search-input'
+import StatusBadge from '@/shared/ui/status-badge'
+import Table, { TableCell, TableRow } from '@/shared/ui/table'
+
+const checkboxClassName = 'size-4 accent-primary'
+
+type RouteSelectorProps = {
+  addedIds: string[]
+  onClose: () => void
+  onAdd: (ids: string[]) => void
+}
+const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
+  const query = useGetRoutesQuery()
+  const [selected, setSelected] = useState<string[]>([])
+  const [search, setSearch] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [error, setError] = useState('')
+  const [dateRangeResetKey, setDateRangeResetKey] = useState(0)
+  const text = search.trim().toLocaleLowerCase('ru-RU')
+  const invalidRange = Boolean(startDate && endDate && startDate > endDate)
+  const routes = (query.data ?? []).filter(
+    (route) =>
+      (route.status === 'created' || addedIds.includes(route.id)) &&
+      (!text ||
+        [route.number, route.startPoint.name, route.endPoint.name].some(
+          (value) => value.toLocaleLowerCase('ru-RU').includes(text),
+        )) &&
+      (invalidRange || !startDate || route.date >= startDate) &&
+      (invalidRange || !endDate || route.date <= endDate),
+  )
+  const available = routes.filter(
+    (route) => route.status === 'created' && !addedIds.includes(route.id),
+  )
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Добавить маршруты в рейс"
+      size="wide"
+      actions={
+        <div className="flex w-full items-center justify-between gap-3">
+          <p className="text-xs text-muted">Выбрано: {selected.length}</p>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={onClose}>
+              Отмена
+            </Button>
+            <Button
+              disabled={!selected.length || query.isFetching || query.isError}
+              onClick={() => {
+                if (
+                  selected.some(
+                    (id) =>
+                      !query.data?.some(
+                        (route) =>
+                          route.id === id && route.status === 'created',
+                      ) || addedIds.includes(id),
+                  )
+                ) {
+                  setError('Выбранный маршрут уже недоступен. Проверьте выбор.')
+                  return
+                }
+                onAdd(selected)
+              }}
+            >
+              Добавить в рейс
+            </Button>
+          </div>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-start gap-3">
+          <div className="flex min-w-0 flex-[0_1_20rem] flex-col gap-1">
+            <p
+              id="route-selector-date-label"
+              className="text-sm leading-5 font-medium text-foreground"
+            >
+              Дата
+            </p>
+            <DateRange
+              key={dateRangeResetKey}
+              aria-labelledby="route-selector-date-label"
+              startInputProps={{
+                value: startDate,
+                onChange: (event) => setStartDate(event.target.value),
+              }}
+              endInputProps={{
+                value: endDate,
+                onChange: (event) => setEndDate(event.target.value),
+              }}
+            />
+          </div>
+          <div className="flex min-w-0 flex-[1_1_20rem] flex-col gap-1">
+            <label
+              htmlFor="route-selector-search"
+              className="text-sm leading-5 font-medium text-foreground"
+            >
+              Поиск
+            </label>
+            <SearchInput
+              id="route-selector-search"
+              placeholder="Поиск по номеру маршрута или точке"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onClear={() => setSearch('')}
+            />
+          </div>
+        </div>
+        {Boolean(search || startDate || endDate) && (
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setSearch('')
+                setStartDate('')
+                setEndDate('')
+                setDateRangeResetKey((key) => key + 1)
+              }}
+            >
+              Сбросить фильтры
+            </Button>
+          </div>
+        )}
+        {invalidRange && (
+          <p role="alert" className="text-sm text-danger">
+            Начальная дата должна быть не позже конечной.
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        )}
+        {query.isLoading ? (
+          <Loader label="Загрузка маршрутов" />
+        ) : query.isError ? (
+          <div role="alert">
+            Не удалось загрузить маршруты.{' '}
+            <Button onClick={() => query.refetch()}>Повторить</Button>
+          </div>
+        ) : (
+          <>
+            <Table aria-label="Выбор маршрутов" className="min-w-[900px]">
+              <thead>
+                <TableRow>
+                  <TableCell header>
+                    <input
+                      type="checkbox"
+                      aria-label="Выбрать все доступные маршруты"
+                      className={checkboxClassName}
+                      checked={
+                        available.length > 0 &&
+                        available.every((route) => selected.includes(route.id))
+                      }
+                      disabled={!available.length}
+                      onChange={(event) =>
+                        setSelected((previous) =>
+                          event.target.checked
+                            ? [
+                                ...new Set([
+                                  ...previous,
+                                  ...available.map((route) => route.id),
+                                ]),
+                              ]
+                            : previous.filter(
+                                (id) =>
+                                  !available.some((route) => route.id === id),
+                              ),
+                        )
+                      }
+                    />
+                  </TableCell>
+                  {[
+                    '№ маршрута',
+                    'Дата',
+                    'Точка отправления',
+                    'Точка назначения',
+                    'Время',
+                    'Статус',
+                    'Доступность',
+                  ].map((label) => (
+                    <TableCell header key={label}>
+                      <span className="text-xs">{label}</span>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </thead>
+              <tbody>
+                {routes.map((route) => {
+                  const added = addedIds.includes(route.id)
+                  const option = getRouteStatusOption(route.status)
+                  return (
+                    <TableRow key={route.id}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          aria-label={`Выбрать ${route.number}`}
+                          disabled={added || route.status !== 'created'}
+                          checked={selected.includes(route.id)}
+                          onChange={(event) =>
+                            setSelected((previous) =>
+                              event.target.checked
+                                ? [...previous, route.id]
+                                : previous.filter((id) => id !== route.id),
+                            )
+                          }
+                          className={checkboxClassName}
+                        />
+                      </TableCell>
+                      {[
+                        route.number,
+                        route.date.split('-').reverse().join('.'),
+                        route.startPoint.name,
+                        route.endPoint.name,
+                        `${route.startTime}–${route.endTime}`,
+                      ].map((value, index) => (
+                        <TableCell key={index}>
+                          <span className="text-xs">{value}</span>
+                        </TableCell>
+                      ))}
+                      <TableCell>
+                        {option ? (
+                          <StatusBadge status={option.value}>
+                            {option.label}
+                          </StatusBadge>
+                        ) : (
+                          route.status
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs text-muted">
+                          {added ? 'Уже добавлен' : ''}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </tbody>
+            </Table>
+            {!routes.length && (
+              <p role="status" className="text-sm text-muted">
+                Маршруты не найдены.
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </Modal>
+  )
+}
+export default RouteSelector

@@ -12,6 +12,7 @@ type ModalProps = {
   actions?: ReactNode
   icon?: ReactNode
   layout?: 'default' | 'centered'
+  size?: 'default' | 'wide'
   showClose?: boolean
   closeLabel?: string
 }
@@ -25,6 +26,7 @@ const Modal = ({
   actions,
   icon,
   layout = 'default',
+  size = 'default',
   showClose = true,
   closeLabel = 'Закрыть',
 }: ModalProps) => {
@@ -90,7 +92,7 @@ const Modal = ({
       ref={dialogRef}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
-      className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[480px] max-w-[calc(100%-2rem)] overflow-hidden rounded-card border border-border bg-surface p-0 text-foreground shadow-card backdrop:bg-foreground/40 backdrop:backdrop-blur-sm open:flex open:flex-col"
+      className={`fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] ${size === 'wide' ? 'w-[1170px]' : 'w-[480px]'} max-w-[calc(100%-2rem)] overflow-hidden rounded-card border border-border bg-surface p-0 text-foreground shadow-card backdrop:bg-foreground/40 backdrop:backdrop-blur-sm open:flex open:flex-col`}
       onCancel={(event) => {
         event.preventDefault()
         onClose()

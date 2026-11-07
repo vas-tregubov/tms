@@ -1,6 +1,6 @@
 import {
   getTripStatusOption,
-  TRIP_STATUS_OPTIONS,
+  getTripTimelineProgress,
   type TripStatusRecord,
 } from '@/entities/trip'
 import Button from '@/shared/ui/button'
@@ -20,9 +20,6 @@ type TripTimelineProps = {
 }
 const TripTimeline = ({ status, query }: TripTimelineProps) => {
   const current = getTripStatusOption(status)
-  const currentIndex = TRIP_STATUS_OPTIONS.findIndex(
-    (option) => option === current,
-  )
   return (
     <section
       aria-labelledby="trip-status-title"
@@ -46,21 +43,18 @@ const TripTimeline = ({ status, query }: TripTimelineProps) => {
           </div>
         ) : (
           <StatusTimeline>
-            {TRIP_STATUS_OPTIONS.map((option, index) => {
-              const record = query.currentData?.find(
-                (item) => item.status === option.value,
-              )
-              return (
+            {getTripTimelineProgress(status, query.currentData ?? []).map(
+              (item, index, items) => (
                 <TimelineItem
-                  key={option.value}
-                  status={option.label}
-                  dateTime={record?.dateTime ?? ''}
-                  author={record?.author ?? ''}
-                  state={index <= currentIndex ? 'completed' : 'pending'}
-                  showConnector={index < TRIP_STATUS_OPTIONS.length - 1}
+                  key={item.status}
+                  status={item.label}
+                  dateTime={item.dateTime}
+                  author={item.author}
+                  state={item.state}
+                  showConnector={index < items.length - 1}
                 />
-              )
-            })}
+              ),
+            )}
           </StatusTimeline>
         )}
         <Select

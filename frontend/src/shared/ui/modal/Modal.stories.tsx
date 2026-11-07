@@ -67,6 +67,7 @@ const meta = {
     icon: { control: false },
     isOpen: { control: false },
     layout: { control: 'select', options: ['default', 'centered'] },
+    size: { control: 'select', options: ['default', 'wide'] },
   },
   parameters: {
     layout: 'fullscreen',
@@ -248,5 +249,13 @@ export const Controlled: Story = {
       await waitFor(() => expect(trigger).toHaveFocus())
     }
     await expect(args.onClose).not.toHaveBeenCalled()
+  },
+}
+
+export const Wide: Story = {
+  args: {
+    size: 'wide',
+    title: 'Выбор записей',
+    description: 'Широкий диалог для таблиц и выбора нескольких записей.',
   },
 }

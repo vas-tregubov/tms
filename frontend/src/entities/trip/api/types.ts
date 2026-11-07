@@ -5,3 +5,13 @@ export type TripStatusRecord = {
   author: string
   comment: string
 }
+
+export type CreateTripInput = {
+  date: string
+  startTime: string
+  endTime: string
+  routeIds: string[]
+  driverId: string
+  vehicleId: string
+  comment?: string
+}

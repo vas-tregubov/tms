@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router'
 
 import EditRoutePage from '@/pages/edit-route'
+import CreateTripPage from '@/pages/create-trip'
 import CreateRoutePage from '@/pages/create-route'
 import TripsPage from '@/pages/trips'
 import TripDetailsPage from '@/pages/trip-details'
@@ -30,10 +31,7 @@ const AppRouter = () => (
       </Route>
       <Route path="trips">
         <Route index element={<TripsPage />} />
-        <Route
-          path="new"
-          element={<PlaceholderPage title="Создание рейса" />}
-        />
+        <Route path="new" element={<CreateTripPage />} />
         <Route path=":tripId" element={<TripDetailsPage />} />
       </Route>
       <Route

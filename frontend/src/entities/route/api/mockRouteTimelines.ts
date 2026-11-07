@@ -16,7 +16,7 @@ export const mockRouteTimelines: Record<string, RouteTimelineItem[]> = {
       status: 'assigned',
       dateTime: '01.11.2026 14:15',
       author,
-      state: 'current',
+      state: 'pending',
     },
   ],
   'route-002': [
@@ -24,7 +24,7 @@ export const mockRouteTimelines: Record<string, RouteTimelineItem[]> = {
       status: 'created',
       dateTime: '01.11.2026 16:10',
       author,
-      state: 'current',
+      state: 'pending',
     },
   ],
   'route-003': [
@@ -44,13 +44,13 @@ export const mockRouteTimelines: Record<string, RouteTimelineItem[]> = {
       status: 'intransit',
       dateTime: '01.11.2026 08:45',
       author,
-      state: 'current',
+      state: 'pending',
     },
     {
       status: 'completed',
       dateTime: '01.11.2026 10:35',
       author,
-      state: 'current',
+      state: 'pending',
     },
   ],
 }

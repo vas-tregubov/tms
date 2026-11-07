@@ -72,21 +72,13 @@ const RouteFormFields = ({
   if (step === 3)
     return (
       <div className="flex max-w-[720px] flex-col gap-5">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium">Временной интервал</p>
+        <div className="inline-flex items-center gap-1">
+          <p className="text-sm leading-5 font-medium">Временной интервал</p>
           <RouteTimeHelp />
         </div>
         <div className="grid grid-cols-2 items-start gap-5">
-          <Input
-            type="time"
-            label="Время отправления"
-            {...inputProps('startTime')}
-          />
-          <Input
-            type="time"
-            label="Время прибытия"
-            {...inputProps('endTime')}
-          />
+          <Input type="time" label="Приёмка с" {...inputProps('startTime')} />
+          <Input type="time" label="Приёмка до" {...inputProps('endTime')} />
         </div>
         <Input
           label="Комментарий / особые условия"
@@ -105,8 +97,8 @@ const RouteFormFields = ({
       'Точка назначения',
       points.find((point) => point.value === draft.endPointId)?.label ?? '—',
     ],
-    ['Время отправления', draft.startTime],
-    ['Время прибытия', draft.endTime],
+    ['Приёмка с', draft.startTime],
+    ['Приёмка до', draft.endTime],
     ['Комментарий / особые условия', draft.comment || '—'],
   ] as const
   return (

@@ -21,7 +21,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A semantic ordered sequence composed from TimelineItem children. Each item takes status, dateTime and author strings. The completed/current state describes progress within the timeline UI, independently of Route or Trip business status. The default is current. The caller explicitly sets showConnector={false} on the final item. Date/time text is supplied already formatted; no timezone or machine-readable timestamp is inferred.',
+          'A semantic ordered sequence composed from TimelineItem children. Each item takes status, dateTime and author strings. The completed/pending state describes progress within the timeline UI, independently of Route or Trip business status. The default is pending. The caller explicitly sets showConnector={false} on the final item. Date/time text is supplied already formatted; no timezone or machine-readable timestamp is inferred.',
       },
     },
   },
@@ -31,7 +31,7 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const CurrentItem: Story = {
+export const PendingItem: Story = {
   args: {
     children: (
       <TimelineItem

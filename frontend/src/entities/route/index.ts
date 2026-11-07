@@ -18,3 +18,5 @@ export { ROUTE_FORM_STEPS } from './model/form'
 export { getRouteFormChanges } from './lib/getRouteFormChanges'
 
 export { getRouteTimelineProgress } from './lib/getRouteTimelineProgress'
+
+export { default as RouteTimeHelp } from './ui/RouteTimeHelp'

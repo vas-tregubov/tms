@@ -12,13 +12,12 @@ const timeline: RouteTimelineItem[] = [
   status,
   dateTime: '01.11.2026 10:24',
   author: 'Алексей Петров',
-  state: 'current',
+  state: 'pending',
 }))
 
 it.each([
   ['created', 1],
   ['assigned', 2],
-  ['in_progress', 3],
   ['intransit', 3],
   ['completed', 4],
 ] as const)(
@@ -28,7 +27,7 @@ it.each([
     expect(result.filter((item) => item.state === 'completed')).toHaveLength(
       count,
     )
-    expect(result.filter((item) => item.state === 'current')).toHaveLength(
+    expect(result.filter((item) => item.state === 'pending')).toHaveLength(
       4 - count,
     )
     expect(
@@ -44,7 +43,7 @@ it.each([
         author,
       })),
     )
-    expect(timeline.every((item) => item.state === 'current')).toBe(true)
+    expect(timeline.every((item) => item.state === 'pending')).toBe(true)
   },
 )
 
@@ -52,7 +51,6 @@ it.each([
   ['created', 1],
   ['assigned', 2],
   ['intransit', 3],
-  ['in_progress', 3],
   ['completed', 4],
 ] as const)(
   'always returns the complete lifecycle for %s with incomplete history',
@@ -67,7 +65,7 @@ it.each([
     ])
     expect(result.map((item) => item.state)).toEqual(
       Array.from({ length: 4 }, (_, index) =>
-        index < count ? 'completed' : 'current',
+        index < count ? 'completed' : 'pending',
       ),
     )
     expect(result[0].dateTime).toBe(history[0].dateTime)
@@ -94,7 +92,7 @@ it('renders the lifecycle without fabricated event data for empty or unknown his
   expect(
     unknown.every(
       (item) =>
-        item.state === 'current' && item.dateTime === '' && item.author === '',
+        item.state === 'pending' && item.dateTime === '' && item.author === '',
     ),
   ).toBe(true)
 })

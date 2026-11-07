@@ -104,10 +104,10 @@ const goToReview = async () => {
   expect(
     screen.getByRole('button', { name: 'О временном интервале маршрута' }),
   ).toBeTruthy()
-  fireEvent.change(screen.getByLabelText('Время отправления'), {
+  fireEvent.change(screen.getByLabelText('Приёмка с'), {
     target: { value: '23:59' },
   })
-  fireEvent.change(screen.getByLabelText('Время прибытия'), {
+  fireEvent.change(screen.getByLabelText('Приёмка до'), {
     target: { value: '00:00' },
   })
   fireEvent.change(screen.getByLabelText('Комментарий / особые условия'), {

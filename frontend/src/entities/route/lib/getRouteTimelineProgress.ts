@@ -18,7 +18,7 @@ export const getRouteTimelineProgress = (
       status: option.value,
       dateTime: event?.dateTime ?? '',
       author: event?.author ?? '',
-      state: index <= currentIndex ? 'completed' : 'current',
+      state: index <= currentIndex ? 'completed' : 'pending',
     }
   })
 }

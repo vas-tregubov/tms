@@ -177,8 +177,8 @@ it('hydrates all fields, preserves edits through four steps and keeps status rea
   expect(
     screen.getByRole('button', { name: 'О временном интервале маршрута' }),
   ).toBeTruthy()
-  expect(value('Время отправления')).toBe('09:00')
-  expect(value('Время прибытия')).toBe('10:30')
+  expect(value('Приёмка с')).toBe('09:00')
+  expect(value('Приёмка до')).toBe('10:30')
   expect(value('Комментарий / особые условия')).toBe(
     'Температурный режим +2…+6 °C',
   )
@@ -224,7 +224,7 @@ it('blocks invalid progression at the current step', async () => {
   fireEvent.click(screen.getByRole('combobox', { name: 'Точка отправления' }))
   fireEvent.click(screen.getByRole('option', { name: 'РЦ Северный' }))
   next()
-  fireEvent.change(screen.getByLabelText('Время отправления'), {
+  fireEvent.change(screen.getByLabelText('Приёмка с'), {
     target: { value: '' },
   })
   next()
@@ -281,10 +281,10 @@ it('updates cached Details and List after Save, preserving identity and status',
   fireEvent.click(screen.getByRole('combobox', { name: 'Точка назначения' }))
   fireEvent.click(screen.getByRole('option', { name: 'РЦ Северный' }))
   next()
-  fireEvent.change(screen.getByLabelText('Время отправления'), {
+  fireEvent.change(screen.getByLabelText('Приёмка с'), {
     target: { value: '23:59' },
   })
-  fireEvent.change(screen.getByLabelText('Время прибытия'), {
+  fireEvent.change(screen.getByLabelText('Приёмка до'), {
     target: { value: '00:00' },
   })
   fireEvent.change(screen.getByLabelText('Комментарий / особые условия'), {

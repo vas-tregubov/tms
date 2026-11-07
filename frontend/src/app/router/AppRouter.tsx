@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router'
 
 import PlaceholderPage from '@/pages/placeholder'
 import RoutesPage from '@/pages/routes'
+import RouteDetailsPage from '@/pages/route-details'
 
 import RoutedAppLayout from './RoutedAppLayout'
 
@@ -23,7 +24,7 @@ const AppRouter = () => (
           path="new"
           element={<PlaceholderPage title="Создание маршрута" />}
         />
-        <Route path=":routeId" element={<PlaceholderPage title="Маршрут" />} />
+        <Route path=":routeId" element={<RouteDetailsPage />} />
         <Route
           path=":routeId/edit"
           element={<PlaceholderPage title="Редактирование маршрута" />}

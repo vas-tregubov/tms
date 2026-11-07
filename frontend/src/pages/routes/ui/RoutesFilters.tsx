@@ -1,5 +1,6 @@
 import { useId } from 'react'
 
+import { ROUTE_STATUS_OPTIONS } from '@/entities/route'
 import ChevronDownIcon from '@/shared/assets/icons/chevron-down.svg?react'
 import Button from '@/shared/ui/button'
 import DateRange from '@/shared/ui/date-range'
@@ -7,7 +8,6 @@ import SearchInput from '@/shared/ui/search-input'
 import Select from '@/shared/ui/select'
 
 import type { RouteFilters } from '../lib/filterRoutes'
-import { STATUS_OPTIONS } from './statusOptions'
 
 type RoutesFiltersProps = {
   filters: RouteFilters
@@ -72,7 +72,7 @@ const RoutesFilters = ({
             onChange={(event) => onStatusChange(event.target.value)}
           >
             <option value="">Все статусы</option>
-            {STATUS_OPTIONS.map((option) => (
+            {ROUTE_STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

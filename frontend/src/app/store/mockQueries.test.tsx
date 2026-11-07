@@ -3,11 +3,20 @@ import { act, cleanup, renderHook } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { useGetRouteByIdQuery, useGetRoutesQuery } from '@/entities/route'
+import {
+  useGetRouteByIdQuery,
+  useGetRoutesQuery,
+  useGetRouteTimelineQuery,
+} from '@/entities/route'
 import { useGetTripByIdQuery, useGetTripsQuery } from '@/entities/trip'
 import { baseApi } from '@/shared/api'
 
 import { store } from './store'
+
+// Incomplete timeline fixtures are isolated to this test file.
+vi.mock('@/entities/route/api/mockRouteTimelines', () => ({
+  mockRouteTimelines: {},
+}))
 
 const wrapper = ({ children }: PropsWithChildren) => (
   <Provider store={store}>{children}</Provider>
@@ -44,7 +53,19 @@ it('loads consistent Routes and Trips lists asynchronously through the app store
   expect(trips.length).toBeGreaterThan(0)
   for (const trip of trips) {
     for (const route of trip.routes) {
-      expect(route).toEqual(routes.find((item) => item.id === route.id))
+      const listedRoute = routes.find((item) => item.id === route.id)
+      expect(listedRoute).toBeDefined()
+      // Nested Trip snapshots may omit optional detail-only fields such as comment.
+      expect(route).toMatchObject({
+        id: listedRoute!.id,
+        number: listedRoute!.number,
+        date: listedRoute!.date,
+        startPoint: listedRoute!.startPoint,
+        endPoint: listedRoute!.endPoint,
+        startTime: listedRoute!.startTime,
+        endTime: listedRoute!.endTime,
+        status: listedRoute!.status,
+      })
     }
   }
 })
@@ -72,6 +93,7 @@ it('returns deterministic not-found errors instead of successful undefined data'
   const { result } = renderHook(
     () => ({
       route: useGetRouteByIdQuery('missing-route'),
+      timeline: useGetRouteTimelineQuery('missing-route'),
       trip: useGetTripByIdQuery('missing-trip'),
     }),
     { wrapper },
@@ -90,10 +112,35 @@ it('returns deterministic not-found errors instead of successful undefined data'
     message: 'Маршрут не найден',
   })
   expect(result.current.route.data).toBeUndefined()
+  expect(result.current.timeline.isError).toBe(true)
+  expect(result.current.timeline.error).toEqual({
+    status: 404,
+    message: 'Маршрут не найден',
+  })
+  expect(result.current.timeline.data).toBeUndefined()
   expect(result.current.trip.isError).toBe(true)
   expect(result.current.trip.error).toEqual({
     status: 404,
     message: 'Рейс не найден',
   })
   expect(result.current.trip.data).toBeUndefined()
+})
+
+it('returns a successful empty timeline for an existing Route with no mock timeline entry', async () => {
+  const { result } = renderHook(
+    () => ({
+      route: useGetRouteByIdQuery('route-002'),
+      timeline: useGetRouteTimelineQuery('route-002'),
+    }),
+    { wrapper },
+  )
+
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200)
+  })
+
+  expect(result.current.route.data?.id).toBe('route-002')
+  expect(result.current.timeline.isSuccess).toBe(true)
+  expect(result.current.timeline.data).toEqual([])
+  expect(result.current.timeline.error).toBeUndefined()
 })

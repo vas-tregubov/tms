@@ -35,6 +35,7 @@
 - `endPoint`: DistributionCenter | LogisticsPoint
 - `startTime`: string
 - `endTime`: string
+- `comment`: string (optional)
 - `status`: string
 
 `id` is the technical opaque identifier used for routing and lookups.

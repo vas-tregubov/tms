@@ -148,6 +148,7 @@ it('validates required fields without changing data', async () => {
   expect(
     screen.getByLabelText('Транспортное средство').getAttribute('aria-invalid'),
   ).toBe('true')
+  expect(document.activeElement).toBe(screen.getByLabelText('Дата рейса'))
   const driver = screen.getByLabelText('Водитель')
   driver.focus()
   fireEvent.change(driver, { target: { value: 'driver-001' } })
@@ -181,9 +182,6 @@ it('filters selector, adds several Routes locally, prevents duplicates and disca
   ).toBeNull()
   fireEvent.change(selector.getByRole('searchbox', { name: 'Поиск' }), {
     target: { value: '' },
-  })
-  fireEvent.change(selector.getByRole('combobox', { name: 'Статус' }), {
-    target: { value: 'created' },
   })
   expect(
     selector.queryByRole('checkbox', { name: 'Выбрать MR-000121' }),
@@ -374,4 +372,17 @@ it('retains draft after a conflict and permits a corrected manual retry', async 
   fireEvent.click(screen.getByRole('button', { name: 'Сохранить рейс' }))
   await screen.findByRole('dialog', { name: 'Рейс сохранён' })
   expect(getMockTrips()).toHaveLength(4)
+})
+
+it('focuses the route trigger for missing Routes without marking the button aria-invalid', async () => {
+  renderCreate()
+  await ready()
+  fill()
+  fireEvent.click(screen.getByRole('button', { name: 'Сохранить рейс' }))
+  const trigger = screen.getByRole('button', { name: 'Добавить маршрут' })
+  expect(document.activeElement).toBe(trigger)
+  expect(trigger.hasAttribute('aria-invalid')).toBe(false)
+  const error = screen.getByText('Добавьте хотя бы один маршрут')
+  expect(trigger.getAttribute('aria-describedby')).toBe(error.id)
+  expect(getMockTrips()).toHaveLength(2)
 })

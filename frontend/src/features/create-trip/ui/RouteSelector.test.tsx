@@ -60,6 +60,7 @@ it('hides unrelated assigned/intransit/completed Routes and keeps added created 
   render(
     <RouteSelector addedIds={['route-1']} onClose={vi.fn()} onAdd={vi.fn()} />,
   )
+  expect(screen.queryByRole('combobox', { name: 'Статус' })).toBeNull()
   const table = within(screen.getByRole('table', { name: 'Выбор маршрутов' }))
   for (const number of ['MR-900002', 'MR-900003', 'MR-900004'])
     expect(table.queryByText(number)).toBeNull()
@@ -90,9 +91,6 @@ it('resets all filters while preserving checkbox selection and existing draft Ro
   fireEvent.change(screen.getByRole('searchbox', { name: 'Поиск' }), {
     target: { value: 'missing' },
   })
-  fireEvent.change(screen.getByRole('combobox', { name: 'Статус' }), {
-    target: { value: 'completed' },
-  })
   fireEvent.change(screen.getByLabelText('Начальная дата'), {
     target: { value: '2030-01-01' },
   })
@@ -104,10 +102,6 @@ it('resets all filters while preserving checkbox selection and existing draft Ro
     expect((screen.getByLabelText(name) as HTMLInputElement).value).toBe('')
   expect(
     (screen.getByRole('searchbox', { name: 'Поиск' }) as HTMLInputElement)
-      .value,
-  ).toBe('')
-  expect(
-    (screen.getByRole('combobox', { name: 'Статус' }) as HTMLSelectElement)
       .value,
   ).toBe('')
   expect(

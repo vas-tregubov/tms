@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import type { Driver } from '@/entities/driver'
 import { useGetRoutesQuery } from '@/entities/route'
@@ -51,7 +51,7 @@ const CreateTripForm = ({
   const [createTrip, mutation] = useCreateTripMutation()
   const pending = useRef(false)
   const focusError = useRef(false)
-  const form = useRef<HTMLFormElement>(null)
+  const formId = useId()
   const initialStatus = getTripStatusOption('assigned')!
   const disabled = mutation.isLoading || isSaved
   const selectedRoutes = draft.routeIds.flatMap(
@@ -59,10 +59,11 @@ const CreateTripForm = ({
   )
   useEffect(() => {
     if (focusError.current) {
-      form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+      const field = Object.entries(errors).find(([, message]) => message)?.[0]
+      if (field) document.getElementById(`${formId}-${field}`)?.focus()
       focusError.current = false
     }
-  }, [errors])
+  }, [errors, formId])
   const change = (field: keyof TripDraft, value: string) => {
     if (mutation.isError) mutation.reset()
     setDraft((previous) => ({ ...previous, [field]: value }))
@@ -71,7 +72,6 @@ const CreateTripForm = ({
   return (
     <>
       <form
-        ref={form}
         noValidate
         className="flex min-w-0 flex-col gap-5"
         onSubmit={(event) => {
@@ -105,6 +105,7 @@ const CreateTripForm = ({
           </h2>
           <div className="grid grid-cols-4 items-start gap-4">
             <DateInput
+              id={`${formId}-date`}
               label="Дата рейса"
               value={draft.date}
               disabled={disabled}
@@ -113,6 +114,7 @@ const CreateTripForm = ({
             />
             <Input
               type="time"
+              id={`${formId}-startTime`}
               label="Время начала"
               value={draft.startTime}
               disabled={disabled}
@@ -121,6 +123,7 @@ const CreateTripForm = ({
             />
             <Input
               type="time"
+              id={`${formId}-endTime`}
               label="Время окончания"
               value={draft.endTime}
               disabled={disabled}
@@ -147,7 +150,7 @@ const CreateTripForm = ({
               variant="secondary"
               disabled={disabled}
               onClick={() => setIsSelectorOpen(true)}
-              aria-invalid={Boolean(errors.routeIds) || undefined}
+              id={`${formId}-routeIds`}
               aria-describedby={
                 errors.routeIds ? 'trip-routes-error' : undefined
               }
@@ -198,6 +201,7 @@ const CreateTripForm = ({
           </h2>
           <div className="grid grid-cols-2 items-start gap-5">
             <Select
+              id={`${formId}-driverId`}
               label="Водитель"
               value={draft.driverId}
               disabled={disabled}
@@ -212,6 +216,7 @@ const CreateTripForm = ({
               ))}
             </Select>
             <Select
+              id={`${formId}-vehicleId`}
               label="Транспортное средство"
               value={draft.vehicleId}
               disabled={disabled}

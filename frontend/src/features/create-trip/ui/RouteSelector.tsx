@@ -1,18 +1,15 @@
 import { useState } from 'react'
 
-import {
-  ROUTE_STATUS_OPTIONS,
-  getRouteStatusOption,
-  useGetRoutesQuery,
-} from '@/entities/route'
+import { getRouteStatusOption, useGetRoutesQuery } from '@/entities/route'
 import Button from '@/shared/ui/button'
 import DateRange from '@/shared/ui/date-range'
 import Loader from '@/shared/ui/loader'
 import Modal from '@/shared/ui/modal'
 import SearchInput from '@/shared/ui/search-input'
-import Select from '@/shared/ui/select'
 import StatusBadge from '@/shared/ui/status-badge'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'
+
+const checkboxClassName = 'size-4 accent-primary'
 
 type RouteSelectorProps = {
   addedIds: string[]
@@ -25,7 +22,6 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
   const [search, setSearch] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [dateRangeResetKey, setDateRangeResetKey] = useState(0)
   const text = search.trim().toLocaleLowerCase('ru-RU')
@@ -37,7 +33,6 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
         [route.number, route.startPoint.name, route.endPoint.name].some(
           (value) => value.toLocaleLowerCase('ru-RU').includes(text),
         )) &&
-      (!status || route.status === status) &&
       (invalidRange || !startDate || route.date >= startDate) &&
       (invalidRange || !endDate || route.date <= endDate),
   )
@@ -83,10 +78,16 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-start gap-3">
-          <fieldset className="min-w-0 flex-1">
-            <legend className="mb-1 text-xs text-muted">Дата</legend>
+          <div className="flex min-w-0 flex-[0_1_20rem] flex-col gap-1">
+            <p
+              id="route-selector-date-label"
+              className="text-sm leading-5 font-medium text-foreground"
+            >
+              Дата
+            </p>
             <DateRange
               key={dateRangeResetKey}
+              aria-labelledby="route-selector-date-label"
               startInputProps={{
                 value: startDate,
                 onChange: (event) => setStartDate(event.target.value),
@@ -96,25 +97,11 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
                 onChange: (event) => setEndDate(event.target.value),
               }}
             />
-          </fieldset>
-          <div className="w-56">
-            <Select
-              label="Статус"
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-            >
-              <option value="">Все статусы</option>
-              {ROUTE_STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
           </div>
-          <div className="min-w-48 flex-1">
+          <div className="flex min-w-0 flex-[1_1_20rem] flex-col gap-1">
             <label
               htmlFor="route-selector-search"
-              className="mb-1 block text-sm font-medium"
+              className="text-sm leading-5 font-medium text-foreground"
             >
               Поиск
             </label>
@@ -127,7 +114,7 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
             />
           </div>
         </div>
-        {Boolean(search || startDate || endDate || status) && (
+        {Boolean(search || startDate || endDate) && (
           <div className="flex justify-end">
             <Button
               variant="secondary"
@@ -135,7 +122,6 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
                 setSearch('')
                 setStartDate('')
                 setEndDate('')
-                setStatus('')
                 setDateRangeResetKey((key) => key + 1)
               }}
             >
@@ -169,6 +155,7 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
                     <input
                       type="checkbox"
                       aria-label="Выбрать все доступные маршруты"
+                      className={checkboxClassName}
                       checked={
                         available.length > 0 &&
                         available.every((route) => selected.includes(route.id))
@@ -225,7 +212,7 @@ const RouteSelector = ({ addedIds, onClose, onAdd }: RouteSelectorProps) => {
                                 : previous.filter((id) => id !== route.id),
                             )
                           }
-                          className="size-4 accent-primary"
+                          className={checkboxClassName}
                         />
                       </TableCell>
                       {[

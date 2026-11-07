@@ -80,7 +80,7 @@ const Modal = ({
   const closeButton = showClose ? (
     <IconButton
       aria-label={closeLabel}
-      icon={<CloseIcon className="size-5" />}
+      icon={<CloseIcon className="size-5" viewBox="2 2 20 20" />}
       onClick={onClose}
     />
   ) : null

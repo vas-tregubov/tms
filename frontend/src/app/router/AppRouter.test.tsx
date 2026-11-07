@@ -75,7 +75,9 @@ it('renders route creation rather than treating new as a route ID', () => {
   ).toBeTruthy()
   expect(screen.queryByText('ID: new')).toBeNull()
   expect(
-    screen.getByRole('link', { name: 'Маршруты' }).getAttribute('aria-current'),
+    within(screen.getByRole('navigation', { name: 'Основная навигация' }))
+      .getByRole('link', { name: 'Маршруты' })
+      .getAttribute('aria-current'),
   ).toBe('page')
 })
 

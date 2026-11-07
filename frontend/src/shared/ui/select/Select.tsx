@@ -1,6 +1,8 @@
 import { useId } from 'react'
 import type { ReactNode, SelectHTMLAttributes } from 'react'
 
+import ChevronDownIcon from '@/shared/assets/icons/chevron-down.svg?react'
+
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
   label?: string
   helper?: string
@@ -12,7 +14,7 @@ const Select = ({
   label,
   helper,
   error,
-  icon,
+  icon = <ChevronDownIcon className="size-5" />,
   children,
   id,
   className = '',

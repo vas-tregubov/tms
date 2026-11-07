@@ -50,6 +50,33 @@ Example:
 git switch -c feature/routes-api
 ```
 
+### Stacked branches
+
+If a task depends on a feature branch that has not yet merged into `develop`,
+create the dependent local branch from that feature branch instead of `develop`.
+You may work, stage changes with `git add`, and create local commits there.
+`git add` and `git commit` operate locally; only `git push` sends changes to the
+remote repository. By default, do not push the dependent branch or open its pull
+request into `develop` until the base feature branch has merged.
+
+After the base branch merges:
+
+```bash
+git fetch --prune
+git switch <dependent-branch>
+git rebase origin/develop
+```
+
+Resolve any conflicts and rerun the standard project checks. Only after the
+checks pass, push the branch and open a pull request into `develop`.
+
+Keep stacks short: the recommended maximum depth is 2–3 dependent feature
+branches. If further work requires a deeper stack, prefer an independent task.
+
+The existing Git policy still applies: the developer performs commits, pushes,
+and merges manually; coding agents do not execute them. Destructive Git
+operations and force pushes require an explicit request.
+
 ## Rebase and merge
 
 ### Rebase

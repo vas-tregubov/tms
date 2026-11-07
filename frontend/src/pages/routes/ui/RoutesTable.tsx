@@ -1,6 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router'
 
-import { ROUTE_STATUS_OPTIONS, type Route } from '@/entities/route'
+import {
+  ROUTE_STATUS_OPTIONS,
+  RouteTimeHelp,
+  type Route,
+} from '@/entities/route'
 import ActionMenu, { ActionMenuItem } from '@/shared/ui/action-menu'
 import StatusBadge from '@/shared/ui/status-badge'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'
@@ -35,7 +39,10 @@ const RoutesTable = ({ routes }: RoutesTableProps) => {
             'Действия',
           ].map((label) => (
             <TableCell key={label} header>
-              <span className="text-xs leading-4 font-normal">{label}</span>
+              <div className="inline-flex items-center gap-1 text-xs leading-4 font-normal">
+                {label}
+                {label === 'Время' && <RouteTimeHelp />}
+              </div>
             </TableCell>
           ))}
         </TableRow>

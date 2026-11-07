@@ -368,3 +368,16 @@ it('shows the initial empty state when the data source returns no routes', () =>
   expect(screen.getByText('Маршрутов пока нет.')).toBeTruthy()
   expect(screen.queryByRole('table')).toBeNull()
 })
+
+it('explains the time interval once in the table header', async () => {
+  renderRoutes()
+  const table = await screen.findByRole('table', { name: 'Маршруты' })
+  const trigger = within(table).getByRole('button', {
+    name: 'О временном интервале маршрута',
+  })
+  expect(trigger.closest('th')?.textContent).toContain('Время')
+  fireEvent.focus(trigger)
+  expect(screen.getByRole('tooltip').textContent).toBe(
+    'Временной интервал, в который конечная точка маршрута может принять автомобиль.',
+  )
+})

@@ -12,3 +12,6 @@ export const ROUTE_STATUS_OPTIONS = [
   value: ComponentProps<typeof StatusBadge>['status']
   label: string
 }[]
+
+export const getRouteStatusOption = (status: string) =>
+  ROUTE_STATUS_OPTIONS.find((option) => option.value === status)

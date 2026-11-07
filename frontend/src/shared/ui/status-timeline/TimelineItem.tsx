@@ -4,7 +4,7 @@ type TimelineItemProps = {
   status: string
   dateTime: string
   author: string
-  state?: 'completed' | 'current'
+  state?: 'completed' | 'pending'
   showConnector?: boolean
 }
 
@@ -12,7 +12,7 @@ const TimelineItem = ({
   status,
   dateTime,
   author,
-  state = 'current',
+  state = 'pending',
   showConnector = true,
 }: TimelineItemProps) => (
   <li className="flex h-[42px] w-full shrink-0 items-center gap-3">

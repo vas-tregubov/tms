@@ -5,7 +5,7 @@ export type RouteTimelineItem = {
   status: string
   dateTime: string
   author: string
-  state: 'completed' | 'current'
+  state: 'completed' | 'pending'
 }
 
 export type RouteEditableFields = Pick<

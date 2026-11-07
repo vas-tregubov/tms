@@ -105,6 +105,15 @@ it('uses an honest fallback when the selected route has no comment', async () =>
       '—',
     ),
   ).toBeTruthy()
+  const status = within(screen.getByRole('region', { name: 'Статус маршрута' }))
+  await status.findByText('01.11.2026 16:10')
+  const items = within(status.getByRole('list')).getAllByRole('listitem')
+  expect(items.map((item) => item.textContent)).toEqual([
+    'Создан01.11.2026 16:10Алексей Петров',
+    'Назначен',
+    'В пути',
+    'Завершён',
+  ])
 })
 
 it('shows not found for an unknown technical ID', async () => {

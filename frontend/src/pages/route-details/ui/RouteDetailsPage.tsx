@@ -2,7 +2,8 @@ import { skipToken } from '@reduxjs/toolkit/query'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
 import {
-  ROUTE_STATUS_OPTIONS,
+  getRouteStatusOption,
+  getRouteTimelineProgress,
   useGetRouteByIdQuery,
   useGetRouteTimelineQuery,
 } from '@/entities/route'
@@ -61,9 +62,7 @@ const RouteDetailsPage = () => {
 
   if (!route) return null
 
-  const status = ROUTE_STATUS_OPTIONS.find(
-    (option) => option.value === route.status,
-  )
+  const status = getRouteStatusOption(route.status)
   const information = [
     ['№ маршрута', route.number],
     ['Дата', route.date.split('-').reverse().join('.')],
@@ -110,7 +109,7 @@ const RouteDetailsPage = () => {
           </div>
           <Button
             variant="secondary"
-            icon={<EditIcon className="size-4" />}
+            icon={<EditIcon className="size-5 shrink-0" />}
             disabled={route.status === 'completed'}
             onClick={() =>
               navigate(`/routes/${encodeURIComponent(route.id)}/edit`, {
@@ -170,15 +169,16 @@ const RouteDetailsPage = () => {
                   Повторить загрузку статусов
                 </Button>
               </div>
-            ) : timeline.currentData?.length ? (
+            ) : (
               <StatusTimeline>
-                {timeline.currentData.map((item, index, items) => (
+                {getRouteTimelineProgress(
+                  route.status,
+                  timeline.currentData ?? [],
+                ).map((item, index, items) => (
                   <TimelineItem
                     key={`${item.status}-${item.dateTime}`}
                     status={
-                      ROUTE_STATUS_OPTIONS.find(
-                        (option) => option.value === item.status,
-                      )?.label ?? item.status
+                      getRouteStatusOption(item.status)?.label ?? item.status
                     }
                     dateTime={item.dateTime}
                     author={item.author}
@@ -187,10 +187,6 @@ const RouteDetailsPage = () => {
                   />
                 ))}
               </StatusTimeline>
-            ) : (
-              <p className="text-sm text-muted">
-                События статуса пока отсутствуют.
-              </p>
             )}
             <div className="pt-2">
               <Select

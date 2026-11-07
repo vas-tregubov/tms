@@ -75,7 +75,7 @@ const RoutesPage = () => {
             </p>
           </div>
           <Button
-            icon={<AddIcon className="size-4" />}
+            icon={<AddIcon className="size-5 shrink-0" />}
             onClick={() => navigate('/routes/new')}
           >
             Создать маршрут

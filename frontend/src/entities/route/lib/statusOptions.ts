@@ -12,3 +12,10 @@ export const ROUTE_STATUS_OPTIONS = [
   value: ComponentProps<typeof StatusBadge>['status']
   label: string
 }[]
+
+// Accept the alternate transport spelling without changing the current status contract.
+export const getRouteStatusOption = (status: string) =>
+  ROUTE_STATUS_OPTIONS.find(
+    (option) =>
+      option.value === (status === 'in_progress' ? 'intransit' : status),
+  )

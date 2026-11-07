@@ -101,6 +101,9 @@ const goToReview = async () => {
   next()
   await fillPoints()
   next()
+  expect(
+    screen.getByRole('button', { name: 'О временном интервале маршрута' }),
+  ).toBeTruthy()
   fireEvent.change(screen.getByLabelText('Время отправления'), {
     target: { value: '23:59' },
   })

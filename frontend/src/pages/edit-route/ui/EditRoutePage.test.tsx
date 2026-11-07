@@ -174,6 +174,9 @@ it('hydrates all fields, preserves edits through four steps and keeps status rea
   expect(value('Точка отправления')).toBe('РЦ Северный')
   expect(value('Точка назначения')).toBe('Логистический пункт Центральный')
   next()
+  expect(
+    screen.getByRole('button', { name: 'О временном интервале маршрута' }),
+  ).toBeTruthy()
   expect(value('Время отправления')).toBe('09:00')
   expect(value('Время прибытия')).toBe('10:30')
   expect(value('Комментарий / особые условия')).toBe(

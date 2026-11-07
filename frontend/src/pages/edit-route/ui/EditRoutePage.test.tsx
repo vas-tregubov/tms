@@ -521,6 +521,17 @@ it('blocks completed Route editing in Details, List and direct URL', async () =>
   await screen.findByRole('heading', {
     name: 'Завершённый маршрут нельзя редактировать',
   })
+  expect(
+    within(screen.getByRole('alert')).getByRole('heading', {
+      name: 'Завершённый маршрут нельзя редактировать',
+    }),
+  ).toBeTruthy()
+  expect(routesBreadcrumb().getAttribute('href')).toBe('/routes')
+  expect(
+    within(screen.getByRole('navigation', { name: 'Хлебные крошки' }))
+      .getByRole('link', { name: 'MR-000121' })
+      .getAttribute('href'),
+  ).toBe('/routes/route-003')
   expect(screen.queryByRole('button', { name: 'Далее' })).toBeNull()
   expect(updateMockRoute).not.toHaveBeenCalled()
 })

@@ -1,14 +1,8 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
-export type RouteDraft = {
-  date: string
-  status: string
-  startPointId: string
-  endPointId: string
-  startTime: string
-  endTime: string
-  comment: string
-}
+import { ROUTE_FORM_STEPS, type RouteFormValues } from '@/entities/route'
+
+export type RouteDraft = RouteFormValues & { status: string }
 
 export const emptyDraft: RouteDraft = {
   date: '',
@@ -30,7 +24,10 @@ const createRouteSlice = createSlice({
       Object.assign(state.draft, action.payload)
     },
     setStep: (state, action: PayloadAction<number>) => {
-      state.currentStep = Math.min(4, Math.max(1, action.payload))
+      state.currentStep = Math.min(
+        ROUTE_FORM_STEPS.length,
+        Math.max(1, action.payload),
+      )
     },
     resetCreateRoute: () => initialState,
   },

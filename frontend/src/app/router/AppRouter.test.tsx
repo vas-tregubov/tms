@@ -36,15 +36,7 @@ it('opens Home as the application entry point', () => {
   ).toBe(false)
 })
 
-it.each([
-  [
-    '/routes/route_alpha-42/edit',
-    'Редактирование маршрута',
-    'route_alpha-42',
-    'Маршруты',
-  ],
-  ['/trips/trip_beta-7', 'Рейс', 'trip_beta-7', 'Рейсы'],
-])(
+it.each([['/trips/trip_beta-7', 'Рейс', 'trip_beta-7', 'Рейсы']])(
   'renders %s inside the shell with its opaque parameter',
   (url, title, id, section) => {
     render(

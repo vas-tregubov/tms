@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import {
+  ROUTE_FORM_STEPS,
+  getRouteFormChanges,
   useCreateRouteMutation,
   useGetRoutePointsQuery,
   type Route,
@@ -23,12 +25,6 @@ import {
 } from '../model/createRouteSlice'
 import RouteFormFields from './RouteFormFields'
 
-const steps = [
-  'Основные данные',
-  'Точки маршрута',
-  'Время и условия',
-  'Проверка и сохранение',
-]
 const descriptions = [
   'Заполните основные данные маршрута',
   'Укажите точку отправления и точку назначения маршрута',
@@ -86,11 +82,11 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
       shouldFocusError.current = true
       return
     }
-    if (currentStep < 4) {
+    if (currentStep < ROUTE_FORM_STEPS.length) {
       goToStep(currentStep + 1)
       return
     }
-    for (let step = 1; step <= 3; step++) {
+    for (let step = 1; step < ROUTE_FORM_STEPS.length; step++) {
       const invalid = validateStep(draft, step)
       if (Object.keys(invalid).length) {
         shouldFocusError.current = true
@@ -99,11 +95,8 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
         return
       }
     }
-    const startPoint = points.data?.find(
-      (point) => point.id === draft.startPointId,
-    )
-    const endPoint = points.data?.find((point) => point.id === draft.endPointId)
-    if (!startPoint || !endPoint) {
+    const changes = getRouteFormChanges(draft, points.data ?? [])
+    if (!changes) {
       goToStep(2)
       setSubmitError('Не удалось найти выбранные точки. Выберите их ещё раз.')
       return
@@ -111,14 +104,7 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
     pending.current = true
     setSubmitError('')
     try {
-      await createRoute({
-        date: draft.date,
-        startPoint,
-        endPoint,
-        startTime: draft.startTime,
-        endTime: draft.endTime,
-        comment: draft.comment || undefined,
-      }).unwrap()
+      await createRoute(changes).unwrap()
     } catch {
       // The shared mutation result renders errors even after remounting.
     } finally {
@@ -131,7 +117,7 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
         {descriptions[currentStep - 1]}
       </p>
       <div className="rounded-card border border-border bg-surface p-5">
-        <Stepper items={steps} currentStep={currentStep} />
+        <Stepper items={ROUTE_FORM_STEPS} currentStep={currentStep} />
       </div>
       <form
         ref={form}
@@ -147,9 +133,9 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
           tabIndex={-1}
           className="p-5 text-base leading-6 font-semibold focus:outline-none"
         >
-          {currentStep === 4
+          {currentStep === ROUTE_FORM_STEPS.length
             ? 'Проверка данных маршрута'
-            : steps[currentStep - 1]}
+            : ROUTE_FORM_STEPS[currentStep - 1]}
         </h2>
         <div className="flex flex-col gap-5 px-5 pb-5">
           {points.isLoading && currentStep === 2 ? (
@@ -210,20 +196,23 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
               type="submit"
               disabled={isSubmitting || (currentStep === 2 && !points.data)}
               icon={
-                isSubmitting ? undefined : currentStep === 4 ? (
+                isSubmitting ? undefined : currentStep ===
+                  ROUTE_FORM_STEPS.length ? (
                   <SaveIcon className="size-4" />
                 ) : (
                   <ArrowRightIcon className="size-4" />
                 )
               }
-              iconPosition={currentStep === 4 ? 'left' : 'right'}
+              iconPosition={
+                currentStep === ROUTE_FORM_STEPS.length ? 'left' : 'right'
+              }
             >
               {isSubmitting ? (
                 <>
                   <Loader size="sm" label="Сохранение маршрута" />
                   Сохранение…
                 </>
-              ) : currentStep === 4 ? (
+              ) : currentStep === ROUTE_FORM_STEPS.length ? (
                 'Сохранить маршрут'
               ) : (
                 'Далее'

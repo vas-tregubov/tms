@@ -3,11 +3,16 @@ import { baseApi } from '@/shared/api'
 import type { Route } from '../model/types'
 import {
   createMockRoute,
+  updateMockRoute,
   getMockRoutePoints,
   getMockRoutes,
 } from './mockRouteSource'
 import { mockRouteTimelines } from './mockRouteTimelines'
-import type { CreateRouteInput, RouteTimelineItem } from './types'
+import type {
+  CreateRouteInput,
+  RouteTimelineItem,
+  UpdateRouteInput,
+} from './types'
 
 const waitForMockResponse = () =>
   new Promise<void>((resolve) => setTimeout(resolve, 150))
@@ -36,7 +41,29 @@ const routeApi = baseApi
         },
         invalidatesTags: ['Route'],
       }),
+      updateRoute: build.mutation<Route, UpdateRouteInput>({
+        queryFn: async (input) => {
+          await waitForMockResponse()
+          if (
+            getMockRoutes().find((route) => route.id === input.id)?.status ===
+            'completed'
+          ) {
+            return {
+              error: {
+                status: 409,
+                message: 'Завершённый маршрут нельзя редактировать',
+              },
+            }
+          }
+          const route = updateMockRoute(input)
+          return route
+            ? { data: route }
+            : { error: { status: 404, message: 'Маршрут не найден' } }
+        },
+        invalidatesTags: (result) => (result ? ['Route'] : []),
+      }),
       getRouteById: build.query<Route, string>({
+        providesTags: ['Route'],
         queryFn: async (id) => {
           await waitForMockResponse()
           const route = getMockRoutes().find((item) => item.id === id)
@@ -65,6 +92,7 @@ export const {
   useGetRoutesQuery,
   useGetRoutePointsQuery,
   useCreateRouteMutation,
+  useUpdateRouteMutation,
   useGetRouteByIdQuery,
   useGetRouteTimelineQuery,
 } = routeApi

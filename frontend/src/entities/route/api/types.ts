@@ -8,7 +8,14 @@ export type RouteTimelineItem = {
   state: 'completed' | 'current'
 }
 
-export type CreateRouteInput = Pick<
+export type RouteEditableFields = Pick<
   Route,
   'date' | 'startPoint' | 'endPoint' | 'startTime' | 'endTime' | 'comment'
 >
+
+export type CreateRouteInput = RouteEditableFields
+
+export type UpdateRouteInput = {
+  id: string
+  changes: RouteEditableFields
+}

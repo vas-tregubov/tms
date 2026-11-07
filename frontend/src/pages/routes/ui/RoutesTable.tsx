@@ -105,7 +105,15 @@ const RoutesTable = ({ routes }: RoutesTableProps) => {
                     >
                       Открыть маршрут
                     </ActionMenuItem>
-                    <ActionMenuItem disabled>Редактировать</ActionMenuItem>
+                    <ActionMenuItem
+                      onClick={() =>
+                        navigate(`${detailsUrl}/edit`, {
+                          state: { routesSearch: search },
+                        })
+                      }
+                    >
+                      Редактировать
+                    </ActionMenuItem>
                     <ActionMenuItem disabled destructive>
                       Удалить
                     </ActionMenuItem>

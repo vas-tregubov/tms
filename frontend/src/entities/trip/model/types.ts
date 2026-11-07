@@ -4,6 +4,7 @@ import type { Vehicle } from '@/entities/vehicle'
 
 export type Trip = {
   id: string
+  number: string
   date: string
   routes: Route[]
   driver: Driver
@@ -11,4 +12,5 @@ export type Trip = {
   startTime: string
   endTime: string
   status: string
+  comment?: string
 }

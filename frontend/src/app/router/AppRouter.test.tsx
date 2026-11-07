@@ -36,24 +36,22 @@ it('opens Home as the application entry point', () => {
   ).toBe(false)
 })
 
-it.each([['/trips/trip_beta-7', 'Рейс', 'trip_beta-7', 'Рейсы']])(
-  'renders %s inside the shell with its opaque parameter',
-  (url, title, id, section) => {
-    render(
-      <MemoryRouter initialEntries={[url]}>
-        <AppRouter />
-      </MemoryRouter>,
-    )
-
-    const main = within(screen.getByRole('main'))
-    expect(main.getByRole('heading', { name: title })).toBeTruthy()
-    expect(main.getByText(`ID: ${id}`)).toBeTruthy()
-    expect(screen.getByRole('banner')).toBeTruthy()
-    expect(
-      screen.getByRole('link', { name: section }).getAttribute('aria-current'),
-    ).toBe('page')
-  },
-)
+it('keeps Trip Details inside the shell with Trips active', async () => {
+  render(
+    <MemoryRouter initialEntries={['/trips/trip-001']}>
+      <AppRouter />
+    </MemoryRouter>,
+  )
+  expect(
+    await screen.findByRole('heading', { name: 'Рейс TR-000123' }),
+  ).toBeTruthy()
+  expect(screen.getByRole('banner')).toBeTruthy()
+  expect(
+    within(screen.getByRole('navigation', { name: 'Основная навигация' }))
+      .getByRole('link', { name: 'Рейсы' })
+      .getAttribute('aria-current'),
+  ).toBe('page')
+})
 
 it('renders route creation rather than treating new as a route ID', () => {
   render(

@@ -1,6 +1,8 @@
 import { baseApi } from '@/shared/api'
 
 import type { Trip } from '../model/types'
+import type { TripStatusRecord } from './types'
+import { mockTripTimeline } from './mockTripTimeline'
 import { mockTrips } from './mockTrips'
 
 const waitForMockResponse = () =>
@@ -12,6 +14,16 @@ const tripApi = baseApi.injectEndpoints({
       queryFn: async () => {
         await waitForMockResponse()
         return { data: mockTrips }
+      },
+    }),
+    getTripTimeline: build.query<TripStatusRecord[], string>({
+      queryFn: async (id) => {
+        await waitForMockResponse()
+        if (!mockTrips.some((trip) => trip.id === id))
+          return { error: { status: 404, message: 'Рейс не найден' } }
+        return {
+          data: Object.hasOwn(mockTripTimeline, id) ? mockTripTimeline[id] : [],
+        }
       },
     }),
     getTripById: build.query<Trip, string>({
@@ -26,4 +38,8 @@ const tripApi = baseApi.injectEndpoints({
   }),
 })
 
-export const { useGetTripsQuery, useGetTripByIdQuery } = tripApi
+export const {
+  useGetTripsQuery,
+  useGetTripByIdQuery,
+  useGetTripTimelineQuery,
+} = tripApi

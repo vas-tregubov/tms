@@ -18,6 +18,7 @@
 ## Trip
 
 - `id`: string
+- `number`: string
 - `date`: string
 - `routes`: Route[]
 - `driver`: Driver
@@ -25,6 +26,11 @@
 - `startTime`: string
 - `endTime`: string
 - `status`: string
+- `comment`: string (optional)
+
+Trip `id` is the technical opaque identifier used for routing and lookups.
+Trip `number` is its independent business/display number, for example `TR-000123`.
+`comment` is an optional Trip note.
 
 ## Route
 

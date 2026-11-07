@@ -37,6 +37,8 @@ const vehicle: Trip['vehicle'] = {
 export const mockTrips: Trip[] = [
   {
     id: 'trip-001',
+    number: 'TR-000123',
+    comment: 'Температурный режим +2…+6 °C. Разгрузка через ворота № 3.',
     date: '2026-11-02',
     routes: [
       {
@@ -68,6 +70,7 @@ export const mockTrips: Trip[] = [
   },
   {
     id: 'trip-002',
+    number: 'TR-000124',
     date: '2026-11-01',
     routes: [
       {

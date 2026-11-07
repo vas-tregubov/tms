@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router'
 
 import EditRoutePage from '@/pages/edit-route'
 import CreateRoutePage from '@/pages/create-route'
+import TripsPage from '@/pages/trips'
+import TripDetailsPage from '@/pages/trip-details'
 import PlaceholderPage from '@/pages/placeholder'
 import RoutesPage from '@/pages/routes'
 import RouteDetailsPage from '@/pages/route-details'
@@ -27,12 +29,12 @@ const AppRouter = () => (
         <Route path=":routeId/edit" element={<EditRoutePage />} />
       </Route>
       <Route path="trips">
-        <Route index element={<PlaceholderPage title="Рейсы" />} />
+        <Route index element={<TripsPage />} />
         <Route
           path="new"
           element={<PlaceholderPage title="Создание рейса" />}
         />
-        <Route path=":tripId" element={<PlaceholderPage title="Рейс" />} />
+        <Route path=":tripId" element={<TripDetailsPage />} />
       </Route>
       <Route
         path="directories"

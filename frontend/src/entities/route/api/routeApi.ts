@@ -28,12 +28,14 @@ const routeApi = baseApi.injectEndpoints({
     getRouteTimeline: build.query<RouteTimelineItem[], string>({
       queryFn: async (id) => {
         await waitForMockResponse()
+        if (!mockRoutes.some((route) => route.id === id)) {
+          return { error: { status: 404, message: 'Маршрут не найден' } }
+        }
+        // Defensive fallback for incomplete mock data, not a status-event domain rule.
         const timeline = Object.hasOwn(mockRouteTimelines, id)
           ? mockRouteTimelines[id]
-          : undefined
-        return timeline
-          ? { data: timeline }
-          : { error: { status: 404, message: 'Статусы маршрута не найдены' } }
+          : []
+        return { data: timeline }
       },
     }),
   }),

@@ -7,7 +7,6 @@ import {
   useGetRouteTimelineQuery,
 } from '@/entities/route'
 import EditIcon from '@/shared/assets/icons/edit.svg?react'
-import ChevronDownIcon from '@/shared/assets/icons/chevron-down.svg?react'
 import Breadcrumbs from '@/shared/ui/breadcrumbs'
 import Button from '@/shared/ui/button'
 import Loader from '@/shared/ui/loader'
@@ -195,7 +194,6 @@ const RouteDetailsPage = () => {
                 label="Изменить статус"
                 value={route.status}
                 disabled
-                icon={<ChevronDownIcon className="size-5" />}
                 helper={
                   route.status === 'completed'
                     ? 'Маршрут завершён. Изменение статуса недоступно.'

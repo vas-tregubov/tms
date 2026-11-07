@@ -43,6 +43,30 @@ const actual =
 const actualSource = await vi.importActual<
   typeof import('@/entities/route/api/mockRouteSource')
 >('@/entities/route/api/mockRouteSource')
+// Browser top-layer methods are outside jsdom's DOM implementation.
+// These local stubs let the integration test exercise our success composition.
+const dialogMethods = ['showModal', 'close'] as const
+const originalMethods = dialogMethods.map((name) =>
+  Object.getOwnPropertyDescriptor(HTMLDialogElement.prototype, name),
+)
+beforeAll(() => {
+  for (const name of dialogMethods)
+    Object.defineProperty(HTMLDialogElement.prototype, name, {
+      configurable: true,
+      value: function (this: HTMLDialogElement) {
+        this.open = name === 'showModal'
+      },
+    })
+})
+afterAll(() => {
+  dialogMethods.forEach((name, index) => {
+    const descriptor = originalMethods[index]
+    if (descriptor)
+      Object.defineProperty(HTMLDialogElement.prototype, name, descriptor)
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, name)
+  })
+})
+
 const hidePopover = Object.getOwnPropertyDescriptor(
   HTMLElement.prototype,
   'hidePopover',
@@ -79,7 +103,10 @@ const Probe = () => {
   const navigate = useNavigate()
   return (
     <>
-      <output aria-label="Текущий URL">{location.pathname}</output>
+      <output aria-label="Текущий URL">
+        {location.pathname}
+        {location.search}
+      </output>
       <button onClick={() => navigate('/routes/route-002/edit')}>
         Другой маршрут
       </button>
@@ -265,6 +292,11 @@ it('updates cached Details and List after Save, preserving identity and status',
   fireEvent.click(save)
   fireEvent.click(save)
   expect(save.hasAttribute('disabled')).toBe(true)
+  await screen.findByRole('dialog', { name: 'Изменения сохранены' })
+  expect(screen.getByLabelText('Текущий URL').textContent).toBe(
+    '/routes/route-001/edit',
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Открыть маршрут' }))
   await screen.findByRole('heading', { name: 'Маршрут MR-000123' })
   await screen.findByText('Обновлённые условия')
   expect(screen.getByText('10.11.2026')).toBeTruthy()
@@ -319,10 +351,19 @@ it('retains the draft on update error and permits retry', async () => {
   back()
   back()
   expect(value('Дата')).toBe('2026-11-10')
+  fireEvent.change(screen.getByLabelText('Дата'), {
+    target: { value: '2026-11-11' },
+  })
+  expect(
+    screen.queryByText('Не удалось сохранить изменения. Попробуйте ещё раз.'),
+  ).toBeNull()
+  expect(value('Дата')).toBe('2026-11-11')
   goToReview()
   fireEvent.click(screen.getByRole('button', { name: 'Сохранить изменения' }))
+  await screen.findByRole('dialog', { name: 'Изменения сохранены' })
+  fireEvent.click(screen.getByRole('button', { name: 'Открыть маршрут' }))
   await screen.findByRole('heading', { name: 'Маршрут MR-000123' })
-  expect(await screen.findByText('10.11.2026')).toBeTruthy()
+  expect(await screen.findByText('11.11.2026')).toBeTruthy()
   expect(updateMockRoute).toHaveBeenCalledTimes(2)
 })
 
@@ -382,8 +423,8 @@ it('delegates initial loading error retry without hydrating a form', () => {
   expect(refetch).toHaveBeenCalledTimes(1)
 })
 
-it('opens Edit from the List action for the selected technical ID', async () => {
-  renderEdit('/routes')
+it('opens Edit from the List action for the selected technical ID and preserves search', async () => {
+  renderEdit('/routes?search=MR-000122')
   const table = await screen.findByRole('table', { name: 'Маршруты' })
   const row = within(table)
     .getByRole('link', { name: 'MR-000122' })
@@ -402,4 +443,84 @@ it('opens Edit from the List action for the selected technical ID', async () => 
   expect(screen.getByLabelText('Текущий URL').textContent).toBe(
     '/routes/route-002/edit',
   )
+  expect(routesBreadcrumb().getAttribute('href')).toBe(
+    '/routes?search=MR-000122',
+  )
+})
+
+const routesBreadcrumb = () =>
+  within(screen.getByRole('navigation', { name: 'Хлебные крошки' })).getByRole(
+    'link',
+    { name: 'Маршруты' },
+  )
+
+it.each(['cancel', 'details', 'list', 'close'] as const)(
+  'preserves List search through Edit and %s',
+  async (action) => {
+    const search = '?search=MR-000123'
+    renderEdit('/routes' + search)
+    fireEvent.click(await screen.findByRole('link', { name: 'MR-000123' }))
+    await screen.findByRole('heading', { name: 'Маршрут MR-000123' })
+    fireEvent.click(screen.getByRole('button', { name: 'Редактировать' }))
+    await loaded()
+    expect(routesBreadcrumb().getAttribute('href')).toBe('/routes' + search)
+    if (action === 'cancel') {
+      fireEvent.click(screen.getByRole('button', { name: 'Отмена' }))
+    } else {
+      goToReview()
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Сохранить изменения' }),
+      )
+      await screen.findByRole('dialog', { name: 'Изменения сохранены' })
+      expect(screen.getByLabelText('Текущий URL').textContent).toBe(
+        '/routes/route-001/edit',
+      )
+      fireEvent.click(
+        screen.getByRole('button', {
+          name:
+            action === 'details'
+              ? 'Открыть маршрут'
+              : action === 'close'
+                ? 'Закрыть'
+                : 'К списку маршрутов',
+        }),
+      )
+    }
+    if (action === 'cancel' || action === 'details') {
+      await screen.findByRole('heading', { name: 'Маршрут MR-000123' })
+      expect(routesBreadcrumb().getAttribute('href')).toBe('/routes' + search)
+      fireEvent.click(routesBreadcrumb())
+    }
+    await screen.findByRole('table', { name: 'Маршруты' })
+    expect(screen.getByLabelText('Текущий URL').textContent).toBe(
+      '/routes' + search,
+    )
+  },
+)
+
+it('blocks completed Route editing in Details, List and direct URL', async () => {
+  const view = renderEdit('/routes/route-003')
+  await screen.findByRole('heading', { name: 'Маршрут MR-000121' })
+  expect(
+    screen
+      .getByRole('button', { name: 'Редактировать' })
+      .hasAttribute('disabled'),
+  ).toBe(true)
+  fireEvent.click(routesBreadcrumb())
+  const table = await screen.findByRole('table', { name: 'Маршруты' })
+  const row = within(table)
+    .getByRole('link', { name: 'MR-000121' })
+    .closest('tr')!
+  expect(
+    within(row)
+      .getByRole('menuitem', { name: 'Редактировать', hidden: true })
+      .hasAttribute('disabled'),
+  ).toBe(true)
+  view.unmount()
+  renderEdit('/routes/route-003/edit')
+  await screen.findByRole('heading', {
+    name: 'Завершённый маршрут нельзя редактировать',
+  })
+  expect(screen.queryByRole('button', { name: 'Далее' })).toBeNull()
+  expect(updateMockRoute).not.toHaveBeenCalled()
 })

@@ -111,8 +111,11 @@ const RouteDetailsPage = () => {
           <Button
             variant="secondary"
             icon={<EditIcon className="size-4" />}
+            disabled={route.status === 'completed'}
             onClick={() =>
-              navigate(`/routes/${encodeURIComponent(route.id)}/edit`)
+              navigate(`/routes/${encodeURIComponent(route.id)}/edit`, {
+                state: { routesSearch },
+              })
             }
           >
             Редактировать

@@ -44,6 +44,17 @@ const routeApi = baseApi
       updateRoute: build.mutation<Route, UpdateRouteInput>({
         queryFn: async (input) => {
           await waitForMockResponse()
+          if (
+            getMockRoutes().find((route) => route.id === input.id)?.status ===
+            'completed'
+          ) {
+            return {
+              error: {
+                status: 409,
+                message: 'Завершённый маршрут нельзя редактировать',
+              },
+            }
+          }
           const route = updateMockRoute(input)
           return route
             ? { data: route }

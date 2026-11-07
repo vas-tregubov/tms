@@ -138,7 +138,9 @@ const EditRouteForm = ({ route, onCancel, onSaved }: EditRouteFormProps) => {
           tabIndex={-1}
           className="p-5 text-base leading-6 font-semibold focus:outline-none"
         >
-          {step === 4 ? 'Проверка изменений' : ROUTE_FORM_STEPS[step - 1]}
+          {step === ROUTE_FORM_STEPS.length
+            ? 'Проверка изменений'
+            : ROUTE_FORM_STEPS[step - 1]}
         </h2>
         <div className="flex flex-col gap-5 px-5 pb-5">
           <RouteFormFields
@@ -151,6 +153,7 @@ const EditRouteForm = ({ route, onCancel, onSaved }: EditRouteFormProps) => {
             }))}
             disabled={mutation.isLoading}
             onChange={(field, value) => {
+              if (mutation.isError) mutation.reset()
               setDraft((previous) => ({ ...previous, [field]: value }))
               setErrors((previous) => ({ ...previous, [field]: undefined }))
             }}
@@ -206,20 +209,21 @@ const EditRouteForm = ({ route, onCancel, onSaved }: EditRouteFormProps) => {
               type="submit"
               disabled={mutation.isLoading}
               icon={
-                mutation.isLoading ? undefined : step === 4 ? (
+                mutation.isLoading ? undefined : step ===
+                  ROUTE_FORM_STEPS.length ? (
                   <SaveIcon className="size-4" />
                 ) : (
                   <ArrowRightIcon className="size-4" />
                 )
               }
-              iconPosition={step === 4 ? 'left' : 'right'}
+              iconPosition={step === ROUTE_FORM_STEPS.length ? 'left' : 'right'}
             >
               {mutation.isLoading ? (
                 <>
                   <Loader size="sm" label="Сохранение изменений" />
                   Сохранение…
                 </>
-              ) : step === 4 ? (
+              ) : step === ROUTE_FORM_STEPS.length ? (
                 'Сохранить изменения'
               ) : (
                 'Далее'

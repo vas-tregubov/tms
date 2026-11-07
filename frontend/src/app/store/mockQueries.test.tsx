@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import {
   useGetRouteByIdQuery,
+  useUpdateRouteMutation,
   useGetRoutesQuery,
   useGetRouteTimelineQuery,
 } from '@/entities/route'
@@ -143,4 +144,37 @@ it('returns a successful empty timeline for an existing Route with no mock timel
   expect(result.current.timeline.isSuccess).toBe(true)
   expect(result.current.timeline.data).toEqual([])
   expect(result.current.timeline.error).toBeUndefined()
+})
+
+it('rejects direct updates to completed Routes without changing stored data', async () => {
+  const { result } = renderHook(
+    () => ({
+      route: useGetRouteByIdQuery('route-003'),
+      mutation: useUpdateRouteMutation(),
+    }),
+    { wrapper },
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(200)
+  })
+  const original = result.current.route.data!
+  await act(async () => {
+    const request = result.current.mutation[0]({
+      id: original.id,
+      changes: { ...original, date: '2026-12-01' },
+    })
+    await vi.advanceTimersByTimeAsync(200)
+    expect(await request).toEqual({
+      error: {
+        status: 409,
+        message: 'Завершённый маршрут нельзя редактировать',
+      },
+    })
+  })
+  await act(async () => {
+    const request = result.current.route.refetch()
+    await vi.advanceTimersByTimeAsync(200)
+    await request
+  })
+  expect(result.current.route.data).toEqual(original)
 })

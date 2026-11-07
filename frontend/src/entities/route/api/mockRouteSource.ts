@@ -31,7 +31,7 @@ export const updateMockRoute = ({
   changes,
 }: UpdateRouteInput): Route | undefined => {
   const current = routes.find((route) => route.id === id)
-  if (!current) return undefined
+  if (!current || current.status === 'completed') return undefined
   // Explicit allowlist preserves server-owned fields even for unexpected runtime input.
   const updated: Route = {
     ...current,

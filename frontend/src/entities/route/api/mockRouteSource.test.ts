@@ -41,3 +41,16 @@ it('immutably replaces editable values while preserving server-owned fields', ()
     updated,
   )
 })
+
+it('does not replace completed Routes through the mock operation', () => {
+  const before = getMockRoutes()
+  const route = before.find((item) => item.status === 'completed')!
+  expect(
+    updateMockRoute({
+      id: route.id,
+      changes: { ...route, date: '2026-12-01' },
+    }),
+  ).toBeUndefined()
+  expect(getMockRoutes()).toBe(before)
+  expect(getMockRoutes().find((item) => item.id === route.id)).toBe(route)
+})

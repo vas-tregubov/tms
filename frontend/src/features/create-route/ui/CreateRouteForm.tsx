@@ -133,7 +133,7 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
           tabIndex={-1}
           className="p-5 text-base leading-6 font-semibold focus:outline-none"
         >
-          {currentStep === 4
+          {currentStep === ROUTE_FORM_STEPS.length
             ? 'Проверка данных маршрута'
             : ROUTE_FORM_STEPS[currentStep - 1]}
         </h2>
@@ -196,20 +196,23 @@ const CreateRouteForm = ({ onCancel, onCreated }: CreateRouteFormProps) => {
               type="submit"
               disabled={isSubmitting || (currentStep === 2 && !points.data)}
               icon={
-                isSubmitting ? undefined : currentStep === 4 ? (
+                isSubmitting ? undefined : currentStep ===
+                  ROUTE_FORM_STEPS.length ? (
                   <SaveIcon className="size-4" />
                 ) : (
                   <ArrowRightIcon className="size-4" />
                 )
               }
-              iconPosition={currentStep === 4 ? 'left' : 'right'}
+              iconPosition={
+                currentStep === ROUTE_FORM_STEPS.length ? 'left' : 'right'
+              }
             >
               {isSubmitting ? (
                 <>
                   <Loader size="sm" label="Сохранение маршрута" />
                   Сохранение…
                 </>
-              ) : currentStep === 4 ? (
+              ) : currentStep === ROUTE_FORM_STEPS.length ? (
                 'Сохранить маршрут'
               ) : (
                 'Далее'

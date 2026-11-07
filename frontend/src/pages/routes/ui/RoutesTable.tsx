@@ -106,6 +106,7 @@ const RoutesTable = ({ routes }: RoutesTableProps) => {
                       Открыть маршрут
                     </ActionMenuItem>
                     <ActionMenuItem
+                      disabled={route.status === 'completed'}
                       onClick={() =>
                         navigate(`${detailsUrl}/edit`, {
                           state: { routesSearch: search },

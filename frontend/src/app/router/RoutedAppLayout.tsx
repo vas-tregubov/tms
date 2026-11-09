@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
-import { Link, matchPath, Outlet, useLocation } from 'react-router'
+import { Link, matchPath, Outlet, useLocation, useNavigate } from 'react-router'
 
+import { ErrorBoundary, ErrorFallback } from '@/app/error-boundary'
 import AppLayout from '@/app/layouts/app-layout'
 import type Sidebar from '@/widgets/sidebar'
 
@@ -14,7 +15,8 @@ const SIDEBAR_HREFS = {
 } satisfies ComponentProps<typeof Sidebar>['hrefs']
 
 const RoutedAppLayout = () => {
-  const { pathname } = useLocation()
+  const { pathname, key } = useLocation()
+  const navigate = useNavigate()
   const activeItem = (
     Object.keys(SIDEBAR_HREFS) as (keyof typeof SIDEBAR_HREFS)[]
   ).find((section) =>
@@ -41,7 +43,12 @@ const RoutedAppLayout = () => {
         },
       }}
     >
-      <Outlet />
+      <ErrorBoundary
+        resetKey={key}
+        fallback={<ErrorFallback onGoHome={() => navigate('/')} />}
+      >
+        <Outlet />
+      </ErrorBoundary>
     </AppLayout>
   )
 }

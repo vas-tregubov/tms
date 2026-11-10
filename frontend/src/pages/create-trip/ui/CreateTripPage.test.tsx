@@ -19,6 +19,7 @@ import {
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
+import { useGetTripReferencesQuery } from '@/entities/trip'
 import {
   createMockRoute,
   getMockRoutes,
@@ -30,6 +31,16 @@ import {
 } from '@/entities/trip/api/mockTripSource'
 import { baseApi } from '@/shared/api'
 import { saveTripWithRoutes } from '@/features/create-trip/api/createTripApi'
+
+vi.mock('@/entities/trip', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/entities/trip')>()
+  return {
+    ...actual,
+    useGetTripReferencesQuery: vi.fn(actual.useGetTripReferencesQuery),
+  }
+})
+const actual =
+  await vi.importActual<typeof import('@/entities/trip')>('@/entities/trip')
 
 const methods = ['showModal', 'close'] as const
 const descriptors = methods.map((name) =>
@@ -65,6 +76,9 @@ afterAll(() => {
   else Reflect.deleteProperty(HTMLElement.prototype, 'hidePopover')
 })
 beforeEach(() => {
+  vi.mocked(useGetTripReferencesQuery).mockImplementation(
+    actual.useGetTripReferencesQuery,
+  )
   resetMockRouteSource()
   resetMockTripSource()
   store.dispatch(baseApi.util.resetApiState())
@@ -127,6 +141,28 @@ const extraRoute = () => {
     endTime: route.endTime,
   })
 }
+
+it('shows a references loading error instead of the form and retries the references query', () => {
+  const refetch = vi.fn()
+  vi.mocked(useGetTripReferencesQuery).mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    isError: true,
+    error: { status: 503, message: 'Справочники недоступны' },
+    refetch,
+  } as ReturnType<typeof useGetTripReferencesQuery>)
+  renderCreate()
+
+  expect(screen.getByRole('alert').textContent).toContain(
+    'Не удалось загрузить водителей и транспорт.',
+  )
+  expect(screen.queryByLabelText('Водитель')).toBeNull()
+  expect(screen.queryByLabelText('Транспортное средство')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Сохранить рейс' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Повторить' }))
+  expect(refetch).toHaveBeenCalledOnce()
+  expect(getMockTrips()).toHaveLength(2)
+})
 
 it('validates required fields without changing data', async () => {
   renderCreate()

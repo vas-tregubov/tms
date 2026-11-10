@@ -25,9 +25,11 @@ const wrapper = ({ children }: PropsWithChildren) => (
 
 beforeEach(() => vi.useFakeTimers())
 
-afterEach(() => {
+afterEach(async () => {
   cleanup()
   store.dispatch(baseApi.util.resetApiState())
+  // Let queued store notifications finish before discarding fake timers.
+  await vi.runAllTimersAsync()
   vi.clearAllTimers()
   vi.useRealTimers()
 })

@@ -25,6 +25,7 @@ import {
   resetMockRouteSource,
   updateMockRoute,
 } from '@/entities/route/api/mockRouteSource'
+import { resetCreateRoute } from '@/features/create-route'
 import { baseApi } from '@/shared/api'
 
 vi.mock('@/entities/route/api/mockRouteSource', async (importOriginal) => {
@@ -84,6 +85,7 @@ afterAll(() => {
 })
 beforeEach(() => {
   resetMockRouteSource()
+  store.dispatch(resetCreateRoute())
   store.dispatch(baseApi.util.resetApiState())
   vi.mocked(updateMockRoute)
     .mockReset()
@@ -96,6 +98,7 @@ afterEach(() => {
   cleanup()
   store.dispatch(baseApi.util.resetApiState())
   resetMockRouteSource()
+  store.dispatch(resetCreateRoute())
 })
 
 const Probe = () => {

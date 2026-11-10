@@ -4,14 +4,21 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { useGetRouteByIdQuery } from '@/entities/route'
+import {
+  useGetRouteByIdQuery,
+  useGetRouteTimelineQuery,
+} from '@/entities/route'
 import { baseApi } from '@/shared/api'
 
 import RouteDetailsPage from './RouteDetailsPage'
 
 vi.mock('@/entities/route', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/entities/route')>()
-  return { ...actual, useGetRouteByIdQuery: vi.fn(actual.useGetRouteByIdQuery) }
+  return {
+    ...actual,
+    useGetRouteByIdQuery: vi.fn(actual.useGetRouteByIdQuery),
+    useGetRouteTimelineQuery: vi.fn(actual.useGetRouteTimelineQuery),
+  }
 })
 
 const actual =
@@ -43,6 +50,9 @@ beforeEach(() => {
   store.dispatch(baseApi.util.resetApiState())
   vi.mocked(useGetRouteByIdQuery).mockImplementation(
     actual.useGetRouteByIdQuery,
+  )
+  vi.mocked(useGetRouteTimelineQuery).mockImplementation(
+    actual.useGetRouteTimelineQuery,
   )
 })
 afterEach(() => vi.clearAllMocks())
@@ -136,6 +146,35 @@ it('shows a generic query error and delegates retry to refetch', () => {
   expect(screen.getByText('Не удалось загрузить маршрут')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Попробовать ещё раз' }))
   expect(refetch).toHaveBeenCalledTimes(1)
+})
+
+it('keeps Route information visible when only the timeline fails and retries that query', async () => {
+  const refetchTimeline = vi.fn()
+  vi.mocked(useGetRouteTimelineQuery).mockReturnValue({
+    currentData: undefined,
+    isLoading: false,
+    isFetching: false,
+    isError: true,
+    error: { status: 503, message: 'История недоступна' },
+    refetch: refetchTimeline,
+  } as ReturnType<typeof useGetRouteTimelineQuery>)
+  renderDetails()
+
+  await screen.findByRole('heading', { name: 'Маршрут MR-000123' })
+  const information = within(
+    screen.getByRole('region', { name: 'Общая информация' }),
+  )
+  expect(information.getByText('MR-000123')).toBeTruthy()
+  expect(information.getByText('РЦ Северный')).toBeTruthy()
+  const status = within(screen.getByRole('region', { name: 'Статус маршрута' }))
+  expect(status.getByRole('alert').textContent).toBe(
+    'Не удалось загрузить статусы маршрута.',
+  )
+  expect(screen.queryByText('Не удалось загрузить маршрут')).toBeNull()
+  fireEvent.click(
+    status.getByRole('button', { name: 'Повторить загрузку статусов' }),
+  )
+  expect(refetchTimeline).toHaveBeenCalledOnce()
 })
 
 it.each([

@@ -108,6 +108,56 @@ Prefer lower-level tests when they provide the same protection more reliably and
 
 Do not duplicate every component-level scenario as E2E.
 
+### Running Playwright E2E
+
+Tests live in `frontend/e2e/` and use `frontend/playwright.config.ts` with the
+existing `playwright/test` API. Three Chromium scenarios cover:
+
+- Routes filters, Details navigation, breadcrumbs, and browser Back;
+- Route Create, Details, Edit, and the updated record in the List;
+- Trip Create with a driver, vehicle, and Route, followed by Trip Details and
+  the linked Route's assigned status, including a real ActionMenu interaction.
+
+Unlike Vitest/React Testing Library tests in jsdom, these tests drive the running
+application in a real browser, including native dialogs, popovers, and SPA
+navigation. They complement component/integration tests rather than repeat all
+validation and error branches.
+
+From the repository root, switch to `frontend` and run:
+
+```bash
+cd frontend
+npm run test:e2e             # Headless Chromium
+npm run test:e2e -- --ui     # Playwright UI Mode
+npm run test:e2e -- --headed # Visible application browser
+npm run test:e2e -- --debug  # Playwright Inspector
+```
+
+If the required browser binaries are missing, install Chromium from the same
+directory with `npx playwright install chromium`. This includes the full browser
+needed for headed/debug use. For headless-only use, run
+`npx playwright install --only-shell chromium`; on Linux, add `--with-deps` when
+system dependencies are also needed. UI Mode requires a graphical environment.
+
+Playwright's `webServer` starts Vite at `http://127.0.0.1:4173` with `--strictPort`
+and stops it after the run. Do not start a second server on that port; the config
+does not reuse existing servers. Tests use one worker, Chromium only, headless
+by default, and no retries.
+
+Each test receives a fresh browser context and starts with the original mock
+fixtures. Route/Trip changes live in the document's memory: reloads and new tabs
+do not share those changes. After saving, continue through SPA links/buttons
+inside the same document. No backend, reset API, or authentication is required.
+
+The existing frontend GitHub Actions workflow runs E2E on pull requests into
+`develop` and `main`. It reuses checkout, Node setup, and `npm ci`, installs
+Chromium with `npx playwright install --with-deps --only-shell chromium`, and
+runs `npm run test:e2e`. A failed test fails the check without retries.
+
+Generated `frontend/test-results/` and `frontend/playwright-report/` are ignored
+by Git. Failure traces remain local to the runner; reports, screenshots, and
+traces are not uploaded as GitHub Artifacts or published externally.
+
 ## Accessibility
 
 Use:
@@ -185,9 +235,11 @@ The target frontend PR checks are:
 - lint;
 - typecheck;
 - Vitest;
-- production build.
+- production build;
+- Playwright E2E.
 
-Playwright execution in CI is configured separately as the E2E suite and test environment mature.
+The existing frontend workflow runs these checks for pull requests into `develop`
+and `main`.
 
 Do not move the full test suite into local Git hooks.
 

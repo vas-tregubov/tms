@@ -9,6 +9,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run --project=app",
     "test:watch": "vitest --project=app",
+    "test:e2e": "playwright test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

@@ -78,7 +78,7 @@ it('keeps login outside the application shell', () => {
     </MemoryRouter>,
   )
 
-  expect(screen.getByRole('heading', { name: 'Вход' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'Вход в систему' })).toBeTruthy()
   expect(screen.queryByRole('banner')).toBeNull()
   expect(
     screen.queryByRole('navigation', { name: 'Основная навигация' }),

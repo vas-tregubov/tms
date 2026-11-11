@@ -1,5 +1,6 @@
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -9,7 +10,15 @@ import {
 import { useState } from 'react'
 import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
-import { afterAll, beforeAll, beforeEach, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
@@ -18,6 +27,10 @@ import {
   type CreateRouteInput,
   type Route,
 } from '@/entities/route'
+import {
+  getMockRoutes,
+  resetMockRouteSource,
+} from '@/entities/route/api/mockRouteSource'
 import { resetCreateRoute } from '@/features/create-route'
 import { baseApi } from '@/shared/api'
 
@@ -56,11 +69,16 @@ afterAll(() => {
 })
 
 beforeEach(() => {
-  store.dispatch(resetCreateRoute())
-  store.dispatch(baseApi.util.resetApiState())
   vi.mocked(useCreateRouteMutation).mockImplementation(
     actual.useCreateRouteMutation,
   )
+})
+afterEach(() => {
+  cleanup()
+  store.dispatch(baseApi.util.resetApiState())
+  store.dispatch(resetCreateRoute())
+  resetMockRouteSource()
+  vi.clearAllMocks()
 })
 const LocationProbe = () => {
   const location = useLocation()
@@ -174,6 +192,7 @@ it('cancel on step one clears the draft and returns to the list', () => {
 it.each(['Открыть маршрут', 'К списку маршрутов'])(
   'creates through RTK Query, prevents double submit, clears draft and handles %s',
   async (action) => {
+    const originalIds = new Set(getMockRoutes().map((route) => route.id))
     renderFlow()
     await goToReview()
     expect(screen.getByText('10.11.2026')).toBeTruthy()
@@ -185,26 +204,45 @@ it.each(['Открыть маршрут', 'К списку маршрутов'])
     const modal = await screen.findByRole('dialog', {
       name: 'Маршрут сохранён',
     })
+    expect(getMockRoutes()).toHaveLength(originalIds.size + 1)
+    const createdRoutes = getMockRoutes().filter(
+      (route) => !originalIds.has(route.id),
+    )
+    expect(createdRoutes).toHaveLength(1)
+    const created = createdRoutes[0]
+    expect(created.number).toMatch(/^MR-\d+$/)
+    expect(created.id).not.toBe(created.number)
+    expect(created).toMatchObject({
+      date: '2026-11-10',
+      status: 'created',
+      startTime: '23:59',
+      endTime: '00:00',
+      comment: 'Обычный <текст>',
+    })
     expect(
-      within(modal).getByText(/Маршрут MR-\d+ успешно создан/),
+      within(modal).getByText(`Маршрут ${created.number} успешно создан`),
     ).toBeTruthy()
     expect(store.getState().createRoute.currentStep).toBe(1)
     expect(store.getState().createRoute.draft.date).toBe('')
     fireEvent.click(within(modal).getByRole('button', { name: action }))
     if (action === 'Открыть маршрут') {
       const heading = await screen.findByRole('heading', {
-        name: /Маршрут MR-/,
+        name: `Маршрут ${created.number}`,
       })
-      expect(heading.textContent).toMatch(/Маршрут MR-/)
-      expect(screen.getByLabelText('Текущий URL').textContent).toMatch(
-        /^\/routes\/created-route-\d+$/,
+      expect(heading).toBeTruthy()
+      expect(screen.getByLabelText('Текущий URL').textContent).toBe(
+        `/routes/${encodeURIComponent(created.id)}`,
       )
       expect(screen.getByRole('button', { name: 'Редактировать' })).toBeTruthy()
     } else {
-      expect(
-        await screen.findByRole('heading', { name: 'Маршруты' }),
-      ).toBeTruthy()
+      const table = await screen.findByRole('table', { name: 'Маршруты' })
+      const link = within(table).getByRole('link', { name: created.number })
+      expect(link.getAttribute('href')).toBe(
+        `/routes/${encodeURIComponent(created.id)}`,
+      )
+      expect(within(link.closest('tr')!).getByText('10.11.2026')).toBeTruthy()
     }
+    expect(getMockRoutes()).toHaveLength(originalIds.size + 1)
   },
 )
 

@@ -121,3 +121,58 @@ it('resets all filters while preserving checkbox selection and existing draft Ro
   fireEvent.click(screen.getByRole('button', { name: 'Добавить в рейс' }))
   expect(onAdd).toHaveBeenCalledWith(['route-0'])
 })
+
+it('rejects a selected Route that becomes assigned after the query refreshes', () => {
+  const onAdd = vi.fn()
+  const view = render(
+    <RouteSelector addedIds={[]} onClose={vi.fn()} onAdd={onAdd} />,
+  )
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Выбрать MR-900000' }))
+  expect(screen.getByText('Выбрано: 1')).toBeTruthy()
+  expect(onAdd).not.toHaveBeenCalled()
+
+  vi.mocked(useGetRoutesQuery).mockReturnValue({
+    data: data.map((route) =>
+      route.id === 'route-0' ? { ...route, status: 'assigned' } : route,
+    ),
+    isLoading: false,
+    isFetching: false,
+    isError: false,
+    refetch: vi.fn(),
+  } as ReturnType<typeof useGetRoutesQuery>)
+  view.rerender(<RouteSelector addedIds={[]} onClose={vi.fn()} onAdd={onAdd} />)
+  expect(
+    screen.queryByRole('checkbox', { name: 'Выбрать MR-900000' }),
+  ).toBeNull()
+  const add = screen.getByRole('button', { name: 'Добавить в рейс' })
+  expect(add.hasAttribute('disabled')).toBe(false)
+  fireEvent.click(add)
+
+  expect(onAdd).not.toHaveBeenCalled()
+  expect(screen.getByRole('alert').textContent).toBe(
+    'Выбранный маршрут уже недоступен. Проверьте выбор.',
+  )
+})
+
+it('shows a Routes loading error and retries through the query refetch', () => {
+  const refetch = vi.fn()
+  const onAdd = vi.fn()
+  vi.mocked(useGetRoutesQuery).mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    isFetching: false,
+    isError: true,
+    refetch,
+  } as ReturnType<typeof useGetRoutesQuery>)
+  render(<RouteSelector addedIds={[]} onClose={vi.fn()} onAdd={onAdd} />)
+
+  expect(screen.getByRole('alert').textContent).toContain(
+    'Не удалось загрузить маршруты.',
+  )
+  expect(screen.queryByRole('table', { name: 'Выбор маршрутов' })).toBeNull()
+  const retry = screen.getByRole('button', { name: 'Повторить' })
+  expect(retry.hasAttribute('disabled')).toBe(false)
+  fireEvent.click(retry)
+  expect(refetch).toHaveBeenCalledOnce()
+  expect(onAdd).not.toHaveBeenCalled()
+})

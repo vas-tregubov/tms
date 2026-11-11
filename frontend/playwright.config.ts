@@ -1,6 +1,8 @@
 import { defineConfig } from 'playwright/test'
 
 const baseURL = 'http://127.0.0.1:4173'
+const previewCommand =
+  'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort'
 
 export default defineConfig({
   testDir: './e2e',
@@ -16,7 +18,10 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4173 --strictPort',
+    command: process.env.CI
+      ? previewCommand
+      : `npm run build && ${previewCommand}`,
+    timeout: 120_000,
     url: baseURL,
     reuseExistingServer: false,
   },

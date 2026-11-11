@@ -139,9 +139,10 @@ needed for headed/debug use. For headless-only use, run
 `npx playwright install --only-shell chromium`; on Linux, add `--with-deps` when
 system dependencies are also needed. UI Mode requires a graphical environment.
 
-Playwright's `webServer` starts Vite at `http://127.0.0.1:4173` with `--strictPort`
-and stops it after the run. Do not start a second server on that port; the config
-does not reuse existing servers. Tests use one worker, Chromium only, headless
+Locally, Playwright's `webServer` runs `npm run build` automatically, then serves
+the production build through Vite preview at `http://127.0.0.1:4173` with
+`--strictPort` and stops the server after the run. Do not start a second server
+on that port; the config does not reuse existing servers. Tests use one worker, Chromium only, headless
 by default, and no retries.
 
 Each test receives a fresh browser context and starts with the original mock
@@ -152,7 +153,10 @@ inside the same document. No backend, reset API, or authentication is required.
 The existing frontend GitHub Actions workflow runs E2E on pull requests into
 `develop` and `main`. It reuses checkout, Node setup, and `npm ci`, installs
 Chromium with `npx playwright install --with-deps --only-shell chromium`, and
-runs `npm run test:e2e`. A failed test fails the check without retries.
+runs `npm run test:e2e`. With `CI` set, Playwright skips building and previews
+the `dist` output from the preceding Production build step in the same job.
+Any other CI invocation must also run `npm run build` before E2E.
+A failed test fails the check without retries.
 
 Generated `frontend/test-results/` and `frontend/playwright-report/` are ignored
 by Git. Failure traces remain local to the runner; reports, screenshots, and

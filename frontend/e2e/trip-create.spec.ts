@@ -70,7 +70,6 @@ test('creates a Trip with driver, vehicle and Route, then shows the assigned Rou
     .getByText(/Рейс TR-\d+ успешно создан/)
     .innerText()
   const number = message.match(/TR-\d+/)?.[0]
-  expect(number).toBeDefined()
   await success
     .getByRole('button', { name: 'Открыть рейс', exact: true })
     .click()

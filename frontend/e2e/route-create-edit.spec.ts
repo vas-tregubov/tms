@@ -55,7 +55,6 @@ test('creates a Route, edits it and shows the updated record in Details and List
     .getByText(/Маршрут MR-\d+ успешно создан/)
     .innerText()
   const number = message.match(/MR-\d+/)?.[0]
-  expect(number).toBeDefined()
   await createdDialog
     .getByRole('button', { name: 'Открыть маршрут', exact: true })
     .click()

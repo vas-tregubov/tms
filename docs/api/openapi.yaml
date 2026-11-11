@@ -1,0 +1,2887 @@
+openapi: 3.0.3
+info:
+  title: TMS API
+  version: 0.1.0
+  description:
+    "Contract-first REST API for the dispatcher TMS MVP. Target architecture:
+    NestJS/TypeScript modular monolith, Controller -> Service -> Repository, PostgreSQL. This file
+    is the single API contract; it does not imply backend implementation. Requests use technical
+    IDs, not Route/Trip business numbers. PATCH modifies supplied properties only; unknown
+    properties and empty patches are 400. All failures use ApiError. Dates are calendar dates; Route
+    times are the end-point acceptance window. Time-zone and overnight semantics remain open.
+    Schemas marked as provisional describe only confirmed behavior and are not implementation-ready
+    until the documented decisions are approved. No RBAC, public registration, additional roles,
+    tenants, queues or routing optimization are introduced. All example identities and records are
+    fictional."
+servers:
+  - url: http://localhost:3000/api
+    description: Planned local backend; the current NestJS scaffold does not implement these endpoints.
+tags:
+  - name: Routes
+    description: Route planning and acceptance windows.
+  - name: Trips
+    description: Ordered Route composition with Driver and Vehicle assignment.
+  - name: Drivers
+    description: Independent Drivers directory.
+  - name: Vehicles
+    description: Independent Vehicles directory.
+  - name: Distribution Centers
+    description: Independent Distribution Centers directory.
+  - name: Logistics Points
+    description: Independent Logistics Points directory.
+  - name: Auth
+    description: Dispatcher-only JWT access/refresh authentication; refresh transport remains undecided.
+security:
+  - bearerAuth: []
+x-open-decisions:
+  - Route and Trip time zones, overnight windows and multi-day scheduling.
+  - Manual status transition matrices, same-status requests and status propagation.
+  - Trip editing, reordering, reassignment and removal/release rules; completed-document retention.
+  - Route membership lifetime, historical snapshots and deletion policies beyond conservative
+    conflicts.
+  - Driver/Vehicle scheduling availability and compatibility of Route dates/windows with a Trip.
+  - Vehicle and Logistics Point initial/status-update policies; no exhaustive enums exist.
+  - Capacity units/bounds, coordinate format, structured contacts/schedules and registration
+    uniqueness.
+  - Dispatcher login identifier, JWT lifetimes, refresh transport/rotation and logout guarantees.
+  - PointReference {type,id} is the proposed unambiguous API representation; frontend integration
+    needs an adapter.
+  - Lost-update policy for concurrent general PATCH operations; no version/ETag guarantee is
+    invented.
+paths:
+  /routes:
+    get:
+      tags:
+        - Routes
+      summary: List Routes
+      operationId: listRoutes
+      description:
+        Paginated standalone Routes list. Search matches number, startPoint.name and
+        endPoint.name. Date bounds are inclusive; inverted bounds are 400. Default ordering is
+        business number descending, then technical ID ascending. Results must have deterministic
+        ordering; no client sorting parameter is introduced.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/DateFrom"
+        - $ref: "#/components/parameters/DateTo"
+        - $ref: "#/components/parameters/RouteStatus"
+      responses:
+        "200":
+          description: Routes page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteListResponse"
+              example:
+                items:
+                  - id: route-example-1
+                    number: MR-000123
+                    date: "2026-11-12"
+                    startPoint:
+                      type: distribution-center
+                      id: dc-example-1
+                      name: Example Distribution Center
+                    endPoint:
+                      type: logistics-point
+                      id: lp-example-1
+                      name: Example Logistics Point
+                    startTime: "09:30"
+                    endTime: "11:00"
+                    status: created
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Routes
+      summary: Create a Route
+      operationId: createRoute
+      description:
+        Create a Route with server-generated id and business number and initial status created.
+        startTime and endTime are the acceptance window at endPoint, not vehicle movement times.
+        Point references must resolve in their named directories; unknown references are 400.
+        Time-zone, overnight-window and point-compatibility rules remain pending approval.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRouteRequest"
+            example:
+              date: "2026-11-12"
+              startPoint:
+                type: distribution-center
+                id: dc-example-1
+              endPoint:
+                type: logistics-point
+                id: lp-example-1
+              startTime: "09:30"
+              endTime: "11:00"
+              comment: Use the north unloading gate.
+      responses:
+        "201":
+          description: Route created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+              example:
+                id: route-example-1
+                number: MR-000123
+                date: "2026-11-12"
+                startPoint:
+                  type: distribution-center
+                  id: dc-example-1
+                  name: Example Distribution Center
+                endPoint:
+                  type: logistics-point
+                  id: lp-example-1
+                  name: Example Logistics Point
+                startTime: "09:30"
+                endTime: "11:00"
+                status: created
+                comment: Use the north unloading gate.
+          headers:
+            Location:
+              description: URI of the created resource, addressed by technical ID.
+              schema:
+                type: string
+                format: uri-reference
+              example: /api/routes/route-example-1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /routes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Routes
+      summary: Get a Route
+      operationId: getRoute
+      description: Get Route details by technical ID. A business number is not a lookup alias.
+      responses:
+        "200":
+          description: Route details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+              example:
+                id: route-example-1
+                number: MR-000123
+                date: "2026-11-12"
+                startPoint:
+                  type: distribution-center
+                  id: dc-example-1
+                  name: Example Distribution Center
+                endPoint:
+                  type: logistics-point
+                  id: lp-example-1
+                  name: Example Logistics Point
+                startTime: "09:30"
+                endTime: "11:00"
+                status: created
+                comment: Use the north unloading gate.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    patch:
+      tags:
+        - Routes
+      summary: Partially update a Route
+      operationId: updateRoute
+      description:
+        "Change only supplied editable fields. Omitted fields retain their values; comment:
+        null clears the note. id, number and status cannot be supplied. A completed Route returns
+        409 ROUTE_COMPLETED. Additional restrictions on assigned/intransit Route edits and their
+        effect on an existing Trip require approval; reject unapproved effects with 409 and no
+        writes."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRouteRequest"
+            example:
+              comment: null
+      responses:
+        "200":
+          description: Route after the update.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags:
+        - Routes
+      summary: Delete a Route
+      operationId: deleteRoute
+      description:
+        "Delete an unassigned, non-completed Route only when deletion is permitted. A Route
+        referenced by a Trip returns 409 RESOURCE_IN_USE. Completed-Route deletion and historical
+        retention are not approved: return 409 BUSINESS_RULE_NOT_APPROVED rather than remove
+        history. Never implicitly detach a Route or change Trip status. Any other deletion case
+        without an approved rule also returns 409 BUSINESS_RULE_NOT_APPROVED without writes."
+      responses:
+        "204":
+          description: Route deleted under an approved deletion rule. No response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /trips:
+    get:
+      tags:
+        - Trips
+      summary: List Trips
+      operationId: listTrips
+      description:
+        Paginated standalone Trips list. Search matches number, driver.fullName and
+        vehicle.registrationNumber. Date bounds are inclusive; inverted bounds are 400. Default
+        ordering is business number descending, then technical ID ascending. Results must have
+        deterministic ordering; no client sorting parameter is introduced.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/DateFrom"
+        - $ref: "#/components/parameters/DateTo"
+        - $ref: "#/components/parameters/TripStatus"
+      responses:
+        "200":
+          description: Trips page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripListResponse"
+              example:
+                items:
+                  - id: trip-example-1
+                    number: TR-000125
+                    date: "2026-11-12"
+                    startTime: "08:00"
+                    endTime: "18:00"
+                    routeCount: 2
+                    driver:
+                      id: driver-example-1
+                      fullName: Example Driver
+                    vehicle:
+                      id: vehicle-example-1
+                      registrationNumber: EXAMPLE-01
+                    status: assigned
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Trips
+      summary: Create a Trip
+      operationId: createTrip
+      description:
+        "Atomically create a Trip with initial status assigned, a server-generated id and
+        business number, an existing Driver and Vehicle, and at least one ordered Route ID. Reject
+        duplicate routeIds with 400, a missing Route with 404, and a Route that is not created or is
+        already assigned to another Trip with 409 ROUTE_ALREADY_ASSIGNED. This is checked against
+        persisted assignments, not only a status or mock snapshot. Concurrent competing assignments
+        must yield a conflict: at most one Trip claims a Route. On any failure, no Trip, Route
+        assignment, status change or history entry is partially committed. Successful creation
+        assigns the selected Routes and changes their statuses to assigned. Driver/Vehicle schedule
+        availability and date/window compatibility rules are not yet approved."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTripRequest"
+            example:
+              date: "2026-11-12"
+              startTime: "08:00"
+              endTime: "18:00"
+              routeIds:
+                - route-example-1
+                - route-example-2
+              driverId: driver-example-1
+              vehicleId: vehicle-example-1
+              comment: Follow the specified Route order.
+      responses:
+        "201":
+          description: Trip created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripResponse"
+              example:
+                id: trip-example-1
+                number: TR-000125
+                date: "2026-11-12"
+                startTime: "08:00"
+                endTime: "18:00"
+                routes:
+                  - id: route-example-1
+                    number: MR-000123
+                    date: "2026-11-12"
+                    startPoint:
+                      type: distribution-center
+                      id: dc-example-1
+                      name: Example Distribution Center
+                    endPoint:
+                      type: logistics-point
+                      id: lp-example-1
+                      name: Example Logistics Point
+                    startTime: "09:30"
+                    endTime: "11:00"
+                    status: assigned
+                  - id: route-example-2
+                    number: MR-000124
+                    date: "2026-11-12"
+                    startPoint:
+                      type: distribution-center
+                      id: dc-example-1
+                      name: Example Distribution Center
+                    endPoint:
+                      type: logistics-point
+                      id: lp-example-1
+                      name: Example Logistics Point
+                    startTime: "09:30"
+                    endTime: "11:00"
+                    status: assigned
+                driver:
+                  id: driver-example-1
+                  fullName: Example Driver
+                  contacts: Example contact details
+                vehicle:
+                  id: vehicle-example-1
+                  registrationNumber: EXAMPLE-01
+                  type: Example van
+                  maxWeight: 3500
+                  maxVolume: 18
+                  status: available
+                status: assigned
+                comment: Follow the specified Route order.
+          headers:
+            Location:
+              description: URI of the created resource, addressed by technical ID.
+              schema:
+                type: string
+                format: uri-reference
+              example: /api/trips/trip-example-1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /trips/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Trips
+      summary: Get a Trip
+      operationId: getTrip
+      description: Get Trip details by technical ID. A business number is not a lookup alias.
+      responses:
+        "200":
+          description: Trip details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripResponse"
+              example:
+                id: trip-example-1
+                number: TR-000125
+                date: "2026-11-12"
+                startTime: "08:00"
+                endTime: "18:00"
+                routes:
+                  - id: route-example-1
+                    number: MR-000123
+                    date: "2026-11-12"
+                    startPoint:
+                      type: distribution-center
+                      id: dc-example-1
+                      name: Example Distribution Center
+                    endPoint:
+                      type: logistics-point
+                      id: lp-example-1
+                      name: Example Logistics Point
+                    startTime: "09:30"
+                    endTime: "11:00"
+                    status: assigned
+                  - id: route-example-2
+                    number: MR-000124
+                    date: "2026-11-12"
+                    startPoint:
+                      type: distribution-center
+                      id: dc-example-1
+                      name: Example Distribution Center
+                    endPoint:
+                      type: logistics-point
+                      id: lp-example-1
+                      name: Example Logistics Point
+                    startTime: "09:30"
+                    endTime: "11:00"
+                    status: assigned
+                driver:
+                  id: driver-example-1
+                  fullName: Example Driver
+                  contacts: Example contact details
+                vehicle:
+                  id: vehicle-example-1
+                  registrationNumber: EXAMPLE-01
+                  type: Example van
+                  maxWeight: 3500
+                  maxVolume: 18
+                  status: available
+                status: assigned
+                comment: Follow the specified Route order.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    patch:
+      tags:
+        - Trips
+      summary: Partially update a Trip
+      operationId: updateTrip
+      description:
+        "Change only supplied fields; comment: null clears the note. id, number and status are
+        not editable here. If routeIds is supplied, it denotes the complete ordered replacement,
+        with no duplicates and at least one Route. Reordering, reassignment, release of removed
+        Routes, editing completed Trips, and resource-availability rules remain pending approval.
+        Until a relevant rule is approved, return 409 BUSINESS_RULE_NOT_APPROVED with no writes. Any
+        approved membership change must be atomic and must never assign a Route to two Trips. Do not
+        automatically derive Trip status from Route statuses."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTripRequest"
+            example:
+              comment: null
+      responses:
+        "200":
+          description: Trip after the update.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      x-contract-status: Trip editing and reassignment rules pending approval
+    delete:
+      tags:
+        - Trips
+      summary: Delete a Trip
+      operationId: deleteTrip
+      description:
+        Trip deletion, Route release and completed-Trip retention rules are pending approval.
+        For any case without an approved deletion rule, return 409 BUSINESS_RULE_NOT_APPROVED and
+        leave the Trip and all Routes unchanged. Never cascade delete Routes or infer their
+        replacement statuses. The 204 response describes only a future approved successful deletion.
+      responses:
+        "204":
+          description: Trip deleted under an approved deletion rule. No response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      x-contract-status: Deletion and Route release rules pending approval
+  /drivers:
+    get:
+      tags:
+        - Drivers
+      summary: List Drivers
+      operationId: listDrivers
+      description:
+        Paginated standalone Drivers list. Search matches fullName and contacts. Default
+        ordering is fullName ascending, then technical ID ascending. Results must have deterministic
+        ordering; no client sorting parameter is introduced.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+      responses:
+        "200":
+          description: Drivers page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverListResponse"
+              example:
+                items:
+                  - id: driver-example-1
+                    fullName: Example Driver
+                    contacts: Example contact details
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Drivers
+      summary: Create a Driver
+      operationId: createDriver
+      description:
+        Create an independent directory record; directory data is never inferred from existing
+        Routes or Trips. Unknown referenced IDs are 400. Technical IDs are server-owned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDriverRequest"
+            example:
+              fullName: Example Driver
+              contacts: Example contact details
+      responses:
+        "201":
+          description: Driver created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverResponse"
+              example:
+                id: driver-example-1
+                fullName: Example Driver
+                contacts: Example contact details
+          headers:
+            Location:
+              description: URI of the created resource, addressed by technical ID.
+              schema:
+                type: string
+                format: uri-reference
+              example: /api/drivers/driver-example-1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /drivers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Drivers
+      summary: Get a Driver
+      operationId: getDriver
+      description: Get Driver details by technical ID. A business number is not a lookup alias.
+      responses:
+        "200":
+          description: Driver details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverResponse"
+              example:
+                id: driver-example-1
+                fullName: Example Driver
+                contacts: Example contact details
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    patch:
+      tags:
+        - Drivers
+      summary: Partially update a Driver
+      operationId: updateDriver
+      description:
+        Change only supplied properties. Omitted properties retain their values; null is
+        invalid unless explicitly allowed. Technical IDs cannot be changed. Effects on historical
+        documents require approval; reject a change with 409 BUSINESS_RULE_NOT_APPROVED if its
+        impact cannot be safely determined.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDriverRequest"
+            example:
+              contacts: Updated example contact
+      responses:
+        "200":
+          description: Driver after the update.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DriverResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags:
+        - Drivers
+      summary: Delete a Driver
+      operationId: deleteDriver
+      description:
+        Delete an unused directory record. If any existing Route or Trip references it, return
+        409 RESOURCE_IN_USE without changing any record. Do not cascade delete business documents.
+        Archival and historical-reference policies are not approved.
+      responses:
+        "204":
+          description: Driver deleted under an approved deletion rule. No response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /vehicles:
+    get:
+      tags:
+        - Vehicles
+      summary: List Vehicles
+      operationId: listVehicles
+      description:
+        Paginated standalone Vehicles list. Search matches registrationNumber and type. Default
+        ordering is registrationNumber ascending, then technical ID ascending. Results must have
+        deterministic ordering; no client sorting parameter is introduced.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+      responses:
+        "200":
+          description: Vehicles page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleListResponse"
+              example:
+                items:
+                  - id: vehicle-example-1
+                    registrationNumber: EXAMPLE-01
+                    type: Example van
+                    maxWeight: 3500
+                    maxVolume: 18
+                    status: available
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Vehicles
+      summary: Create a Vehicle
+      operationId: createVehicle
+      description:
+        Create an independent directory record; directory data is never inferred from existing
+        Routes or Trips. Unknown referenced IDs are 400. Technical IDs are server-owned. The
+        server-owned initial-status policy requires approval; return 409 BUSINESS_RULE_NOT_APPROVED
+        if no approved initial value is configured.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVehicleRequest"
+            example:
+              registrationNumber: EXAMPLE-01
+              type: Example van
+              maxWeight: 3500
+              maxVolume: 18
+      responses:
+        "201":
+          description: Vehicle created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponse"
+              example:
+                id: vehicle-example-1
+                registrationNumber: EXAMPLE-01
+                type: Example van
+                maxWeight: 3500
+                maxVolume: 18
+                status: available
+          headers:
+            Location:
+              description: URI of the created resource, addressed by technical ID.
+              schema:
+                type: string
+                format: uri-reference
+              example: /api/vehicles/vehicle-example-1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /vehicles/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Vehicles
+      summary: Get a Vehicle
+      operationId: getVehicle
+      description: Get Vehicle details by technical ID. A business number is not a lookup alias.
+      responses:
+        "200":
+          description: Vehicle details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponse"
+              example:
+                id: vehicle-example-1
+                registrationNumber: EXAMPLE-01
+                type: Example van
+                maxWeight: 3500
+                maxVolume: 18
+                status: available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    patch:
+      tags:
+        - Vehicles
+      summary: Partially update a Vehicle
+      operationId: updateVehicle
+      description:
+        Change only supplied properties. Omitted properties retain their values; null is
+        invalid unless explicitly allowed. Technical IDs cannot be changed. Effects on historical
+        documents require approval; reject a change with 409 BUSINESS_RULE_NOT_APPROVED if its
+        impact cannot be safely determined.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVehicleRequest"
+            example:
+              type: Updated example van
+      responses:
+        "200":
+          description: Vehicle after the update.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags:
+        - Vehicles
+      summary: Delete a Vehicle
+      operationId: deleteVehicle
+      description:
+        Delete an unused directory record. If any existing Route or Trip references it, return
+        409 RESOURCE_IN_USE without changing any record. Do not cascade delete business documents.
+        Archival and historical-reference policies are not approved.
+      responses:
+        "204":
+          description: Vehicle deleted under an approved deletion rule. No response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /distribution-centers:
+    get:
+      tags:
+        - Distribution Centers
+      summary: List Distribution Centers
+      operationId: listDistributionCenters
+      description:
+        Paginated standalone Distribution Centers list. Search matches name and address.
+        Default ordering is name ascending, then technical ID ascending. Results must have
+        deterministic ordering; no client sorting parameter is introduced.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+      responses:
+        "200":
+          description: Distribution Centers page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DistributionCenterListResponse"
+              example:
+                items:
+                  - id: dc-example-1
+                    name: Example Distribution Center
+                    address: Example warehouse address
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Distribution Centers
+      summary: Create a Distribution Center
+      operationId: createDistributionCenter
+      description:
+        Create an independent directory record; directory data is never inferred from existing
+        Routes or Trips. Unknown referenced IDs are 400. Technical IDs are server-owned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDistributionCenterRequest"
+            example:
+              name: Example Distribution Center
+              address: Example warehouse address
+      responses:
+        "201":
+          description: Distribution Center created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DistributionCenterResponse"
+              example:
+                id: dc-example-1
+                name: Example Distribution Center
+                address: Example warehouse address
+          headers:
+            Location:
+              description: URI of the created resource, addressed by technical ID.
+              schema:
+                type: string
+                format: uri-reference
+              example: /api/distribution-centers/dc-example-1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /distribution-centers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Distribution Centers
+      summary: Get a Distribution Center
+      operationId: getDistributionCenter
+      description: Get Distribution Center details by technical ID. A business number is not a lookup alias.
+      responses:
+        "200":
+          description: Distribution Center details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DistributionCenterResponse"
+              example:
+                id: dc-example-1
+                name: Example Distribution Center
+                address: Example warehouse address
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    patch:
+      tags:
+        - Distribution Centers
+      summary: Partially update a Distribution Center
+      operationId: updateDistributionCenter
+      description:
+        Change only supplied properties. Omitted properties retain their values; null is
+        invalid unless explicitly allowed. Technical IDs cannot be changed. Effects on historical
+        documents require approval; reject a change with 409 BUSINESS_RULE_NOT_APPROVED if its
+        impact cannot be safely determined.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDistributionCenterRequest"
+            example:
+              address: Updated example address
+      responses:
+        "200":
+          description: Distribution Center after the update.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DistributionCenterResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags:
+        - Distribution Centers
+      summary: Delete a Distribution Center
+      operationId: deleteDistributionCenter
+      description:
+        Delete an unused directory record. If any existing Route or Trip references it, return
+        409 RESOURCE_IN_USE without changing any record. Do not cascade delete business documents.
+        Archival and historical-reference policies are not approved.
+      responses:
+        "204":
+          description: Distribution Center deleted under an approved deletion rule. No response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /logistics-points:
+    get:
+      tags:
+        - Logistics Points
+      summary: List Logistics Points
+      operationId: listLogisticsPoints
+      description:
+        Paginated standalone Logistics Points list. Search matches name and address. Default
+        ordering is name ascending, then technical ID ascending. Results must have deterministic
+        ordering; no client sorting parameter is introduced.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Search"
+      responses:
+        "200":
+          description: Logistics Points page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogisticsPointListResponse"
+              example:
+                items:
+                  - id: lp-example-1
+                    name: Example Logistics Point
+                    address: Example delivery address
+                    coordinates: 55.7558, 37.6173
+                    acceptanceSchedule: Daily 08:00-20:00
+                    status: active
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Logistics Points
+      summary: Create a Logistics Point
+      operationId: createLogisticsPoint
+      description:
+        Create an independent directory record; directory data is never inferred from existing
+        Routes or Trips. Unknown referenced IDs are 400. Technical IDs are server-owned. The
+        server-owned initial-status policy requires approval; return 409 BUSINESS_RULE_NOT_APPROVED
+        if no approved initial value is configured.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLogisticsPointRequest"
+            example:
+              name: Example Logistics Point
+              address: Example delivery address
+              coordinates: 55.7558, 37.6173
+              acceptanceSchedule: Daily 08:00-20:00
+      responses:
+        "201":
+          description: Logistics Point created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogisticsPointResponse"
+              example:
+                id: lp-example-1
+                name: Example Logistics Point
+                address: Example delivery address
+                coordinates: 55.7558, 37.6173
+                acceptanceSchedule: Daily 08:00-20:00
+                status: active
+          headers:
+            Location:
+              description: URI of the created resource, addressed by technical ID.
+              schema:
+                type: string
+                format: uri-reference
+              example: /api/logistics-points/lp-example-1
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /logistics-points/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Logistics Points
+      summary: Get a Logistics Point
+      operationId: getLogisticsPoint
+      description: Get Logistics Point details by technical ID. A business number is not a lookup alias.
+      responses:
+        "200":
+          description: Logistics Point details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogisticsPointResponse"
+              example:
+                id: lp-example-1
+                name: Example Logistics Point
+                address: Example delivery address
+                coordinates: 55.7558, 37.6173
+                acceptanceSchedule: Daily 08:00-20:00
+                status: active
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    patch:
+      tags:
+        - Logistics Points
+      summary: Partially update a Logistics Point
+      operationId: updateLogisticsPoint
+      description:
+        Change only supplied properties. Omitted properties retain their values; null is
+        invalid unless explicitly allowed. Technical IDs cannot be changed. Effects on historical
+        documents require approval; reject a change with 409 BUSINESS_RULE_NOT_APPROVED if its
+        impact cannot be safely determined.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLogisticsPointRequest"
+            example:
+              address: Updated example address
+      responses:
+        "200":
+          description: Logistics Point after the update.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogisticsPointResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      tags:
+        - Logistics Points
+      summary: Delete a Logistics Point
+      operationId: deleteLogisticsPoint
+      description:
+        Delete an unused directory record. If any existing Route or Trip references it, return
+        409 RESOURCE_IN_USE without changing any record. Do not cascade delete business documents.
+        Archival and historical-reference policies are not approved.
+      responses:
+        "204":
+          description: Logistics Point deleted under an approved deletion rule. No response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /routes/{id}/status-history:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Routes
+      summary: List Route status history
+      operationId: listRouteStatusHistory
+      description:
+        Return only recorded status facts, oldest first by occurredAt, with a server-stable tie
+        order. Pagination applies to recorded events, not to future timeline markers. A new record
+        without recorded history returns an empty page; an unknown resource is 404. Do not fabricate
+        timestamps or authors from document date/time. The history projection is not a general
+        audit-log CRUD API.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Recorded status history.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteStatusHistoryListResponse"
+              example:
+                items:
+                  - status: created
+                    occurredAt: "2026-11-12T06:30:00Z"
+                    author: Example Dispatcher
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /routes/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    patch:
+      tags:
+        - Routes
+      summary: Request a Route status change
+      operationId: changeRouteStatus
+      description:
+        Accept only the existing Route status vocabulary. The manual transition graph,
+        same-status behavior and propagation between Trip and Route statuses have not been approved.
+        Enum order is not a transition rule. Reject every unapproved transition with 409
+        BUSINESS_RULE_NOT_APPROVED and no changes. A completed Route cannot be modified under
+        current MVP rules. An approved change must atomically update the status and its history,
+        assigning event timestamp and author on the server. Resolve conflicting concurrent changes
+        with 409 rather than committing an invalid transition.
+      x-contract-status: Transition rules pending approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeRouteStatusRequest"
+      responses:
+        "200":
+          description: Resource after an approved status transition.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /trips/{id}/status-history:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags:
+        - Trips
+      summary: List Trip status history
+      operationId: listTripStatusHistory
+      description:
+        Return only recorded status facts, oldest first by occurredAt, with a server-stable tie
+        order. Pagination applies to recorded events, not to future timeline markers. A new record
+        without recorded history returns an empty page; an unknown resource is 404. Do not fabricate
+        timestamps or authors from document date/time. The history projection is not a general
+        audit-log CRUD API.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: Recorded status history.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripStatusHistoryListResponse"
+              example:
+                items:
+                  - status: assigned
+                    occurredAt: "2026-11-12T06:30:00Z"
+                    author: Example Dispatcher
+                total: 1
+                page: 1
+                limit: 20
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /trips/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    patch:
+      tags:
+        - Trips
+      summary: Request a Trip status change
+      operationId: changeTripStatus
+      description:
+        Accept only the existing Trip status vocabulary. The manual transition graph,
+        same-status behavior and propagation between Trip and Route statuses have not been approved.
+        Enum order is not a transition rule. Reject every unapproved transition with 409
+        BUSINESS_RULE_NOT_APPROVED and no changes. Do not derive Trip status automatically from
+        Route statuses. An approved change must atomically update the status and its history,
+        assigning event timestamp and author on the server. Resolve conflicting concurrent changes
+        with 409 rather than committing an invalid transition.
+      x-contract-status: Transition rules pending approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeTripStatusRequest"
+      responses:
+        "200":
+          description: Resource after an approved status transition.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate the current dispatcher
+      operationId: login
+      security: []
+      description:
+        JWT access/refresh authentication for the dispatcher only. No public registration, role
+        or permission management. The login identifier, refresh-token delivery, token lifetimes and
+        session policy require approval; this operation is not implementation-ready until those
+        decisions are made. The response defines the confirmed access-token portion only. Invalid
+        credentials return a generic 401 without exposing whether an account exists. Never return or
+        log the password.
+      x-contract-status: Login identifier and refresh transport pending approval
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Access token issued; refresh-token delivery remains unspecified.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessTokenResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh the dispatcher access token
+      operationId: refresh
+      security: []
+      description:
+        "Requires a valid refresh credential, not an access Bearer token. Refresh transport
+        (cookie, header or body), credential schema, rotation, reuse handling and expiration are
+        pending approval. security: [] removes the global access-token requirement; it does not make
+        this operation anonymous. No request body, cookie or header is specified until the transport
+        is approved. Do not infer refresh delivery from AccessTokenResponse. This is a partial
+        contract and must be finalized before implementation."
+      x-contract-status: "Partial contract: refresh transport and session behavior pending approval"
+      responses:
+        "200":
+          description: New access token; refresh-token rotation and delivery are unspecified.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessTokenResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: End the current dispatcher authentication flow
+      operationId: logout
+      security: []
+      description:
+        "Refresh transport and logout behavior remain pending approval. security: [] removes
+        the access-token requirement so an expired access token is not assumed to prevent logout;
+        the required session/refresh credential and its transport are not yet specified. Successful
+        204 does not promise immediate JWT access-token revocation, logout from every device,
+        refresh-family revocation or a particular repeated-logout result. No request shape is
+        invented. Finalize these decisions before implementation."
+      x-contract-status: "Partial contract: refresh transport and session behavior pending approval"
+      responses:
+        "204":
+          description: Logout acknowledged under the session policy to be approved. No response body.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get the current dispatcher
+      operationId: getCurrentDispatcher
+      description:
+        Resolve the current dispatcher from a valid JWT access token. This is not a Driver
+        lookup. No roles or permissions are returned.
+      responses:
+        "200":
+          description: Current dispatcher.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentDispatcherResponse"
+              example:
+                id: dispatcher-example-1
+                fullName: Example Dispatcher
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description:
+        JWT access token for protected business endpoints and /auth/me. It does not define
+        refresh-token transport.
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      description: Opaque technical resource ID, never a Route or Trip business number.
+      schema:
+        type: string
+        minLength: 1
+      example: record-example-1
+    Page:
+      name: page
+      in: query
+      description: One-based page number. Pages beyond the result set return an empty items array.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Maximum number of records per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Search:
+      name: search
+      in: query
+      description:
+        Trimmed, case-insensitive substring search over the fields listed by the operation.
+        Omit or send an empty string for no search restriction.
+      schema:
+        type: string
+    DateFrom:
+      name: dateFrom
+      in: query
+      description:
+        Inclusive lower bound on the document date. dateFrom after dateTo is 400, not an
+        ignored filter.
+      schema:
+        type: string
+        format: date
+        description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+        example: "2026-11-12"
+    DateTo:
+      name: dateTo
+      in: query
+      description: Inclusive upper bound on the document date.
+      schema:
+        type: string
+        format: date
+        description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+        example: "2026-11-12"
+    RouteStatus:
+      name: status
+      in: query
+      description: Exact Route status filter.
+      schema:
+        $ref: "#/components/schemas/RouteStatus"
+    TripStatus:
+      name: status
+      in: query
+      description: Exact Trip status filter.
+      schema:
+        $ref: "#/components/schemas/TripStatus"
+  schemas:
+    RouteStatus:
+      type: string
+      enum:
+        - created
+        - assigned
+        - intransit
+        - completed
+      description:
+        Existing Route status vocabulary. Enum membership does not authorize a transition; the
+        transition matrix is pending approval.
+    TripStatus:
+      type: string
+      enum:
+        - created
+        - assigned
+        - intransit
+        - completed
+      description:
+        Existing Trip status vocabulary. A new Trip is assigned. Trip status is not
+        automatically derived from Route statuses.
+    PointType:
+      type: string
+      enum:
+        - distribution-center
+        - logistics-point
+      description:
+        Identifies the directory in which a point ID must be resolved. This discriminator is an
+        API reference format, not a new business entity.
+    PointReference:
+      type: object
+      description:
+        An unambiguous reference to an existing directory record. No client-supplied name,
+        address or other trusted directory data is accepted. Each point reference is replaced as a
+        whole in PATCH.
+      additionalProperties: false
+      required:
+        - type
+        - id
+      properties:
+        type:
+          $ref: "#/components/schemas/PointType"
+        id:
+          type: string
+          description: Technical ID in the directory selected by type.
+          minLength: 1
+    PointSummary:
+      type: object
+      description: Read-only point projection for Route lists and details. The ID is scoped by type.
+      additionalProperties: false
+      required:
+        - type
+        - id
+        - name
+      properties:
+        type:
+          $ref: "#/components/schemas/PointType"
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        name:
+          type: string
+    DriverSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - fullName
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        fullName:
+          type: string
+    VehicleSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - registrationNumber
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        registrationNumber:
+          type: string
+    CreateRouteRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - date
+        - startPoint
+        - endPoint
+        - startTime
+        - endTime
+      properties:
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startPoint:
+          $ref: "#/components/schemas/PointReference"
+        endPoint:
+          $ref: "#/components/schemas/PointReference"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Start of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. The business time zone and
+            overnight-window interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            End of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. No ordering rule relative to
+            startTime is assumed until overnight-window semantics are approved.
+          example: "09:30"
+        comment:
+          type: string
+          nullable: true
+          description:
+            Optional note. Omit on creation for no note. In PATCH, omit to retain the note or send
+            null to clear it. An empty string is an empty note, not an omitted field.
+          example: Use the north unloading gate.
+    UpdateRouteRequest:
+      type: object
+      description:
+        Only supplied properties are changed. Omitted properties retain their values. null is
+        accepted only where explicitly allowed.
+      additionalProperties: false
+      properties:
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startPoint:
+          $ref: "#/components/schemas/PointReference"
+        endPoint:
+          $ref: "#/components/schemas/PointReference"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Start of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. The business time zone and
+            overnight-window interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            End of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. No ordering rule relative to
+            startTime is assumed until overnight-window semantics are approved.
+          example: "09:30"
+        comment:
+          type: string
+          nullable: true
+          description:
+            Optional note. Omit on creation for no note. In PATCH, omit to retain the note or send
+            null to clear it. An empty string is an empty note, not an omitted field.
+          example: Use the north unloading gate.
+      minProperties: 1
+    CreateTripRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - date
+        - startTime
+        - endTime
+        - routeIds
+        - driverId
+        - vehicleId
+      properties:
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip start time, not a Route acceptance-window boundary. Business time zone and
+            overnight/multi-day interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip end time. No ordering or Route-date compatibility rule is inferred from
+            the frontend; these rules require approval.
+          example: "09:30"
+        routeIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            description: Route technical ID.
+            minLength: 1
+          description:
+            Ordered execution sequence. Duplicates are invalid. On creation, each Route must exist,
+            have status created and have no conflicting Trip assignment. In PATCH, a supplied array
+            replaces the entire sequence atomically; membership-change rules remain provisional.
+        driverId:
+          type: string
+          description: Technical ID of an existing Driver.
+          minLength: 1
+        vehicleId:
+          type: string
+          description: Technical ID of an existing Vehicle.
+          minLength: 1
+        comment:
+          type: string
+          nullable: true
+          description:
+            Optional note. Omit on creation for no note. In PATCH, omit to retain the note or send
+            null to clear it. An empty string is an empty note, not an omitted field.
+          example: Use the north unloading gate.
+    UpdateTripRequest:
+      type: object
+      description:
+        Only supplied fields change; null is allowed only for comment. A supplied routeIds
+        array replaces the ordered sequence. Trip editing, reassignment, Route release, resource
+        availability and completed-Trip rules require approval. Reject an unapproved change with 409
+        and no partial writes.
+      additionalProperties: false
+      properties:
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip start time, not a Route acceptance-window boundary. Business time zone and
+            overnight/multi-day interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip end time. No ordering or Route-date compatibility rule is inferred from
+            the frontend; these rules require approval.
+          example: "09:30"
+        routeIds:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            description: Route technical ID.
+            minLength: 1
+          description:
+            Ordered execution sequence. Duplicates are invalid. On creation, each Route must exist,
+            have status created and have no conflicting Trip assignment. In PATCH, a supplied array
+            replaces the entire sequence atomically; membership-change rules remain provisional.
+        driverId:
+          type: string
+          description: Technical ID of an existing Driver.
+          minLength: 1
+        vehicleId:
+          type: string
+          description: Technical ID of an existing Vehicle.
+          minLength: 1
+        comment:
+          type: string
+          nullable: true
+          description:
+            Optional note. Omit on creation for no note. In PATCH, omit to retain the note or send
+            null to clear it. An empty string is an empty note, not an omitted field.
+          example: Use the north unloading gate.
+      minProperties: 1
+    RouteSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - date
+        - startPoint
+        - endPoint
+        - startTime
+        - endTime
+        - status
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        number:
+          type: string
+          description: Server-generated business/display number, independent of id.
+          minLength: 1
+          readOnly: true
+          example: MR-000123
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startPoint:
+          $ref: "#/components/schemas/PointSummary"
+        endPoint:
+          $ref: "#/components/schemas/PointSummary"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Start of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. The business time zone and
+            overnight-window interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            End of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. No ordering rule relative to
+            startTime is assumed until overnight-window semantics are approved.
+          example: "09:30"
+        status:
+          $ref: "#/components/schemas/RouteStatus"
+    RouteResponse:
+      type: object
+      description:
+        Route details. comment may be absent or null when no note exists. History is fetched
+        separately. No Trip object is embedded.
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - date
+        - startPoint
+        - endPoint
+        - startTime
+        - endTime
+        - status
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        number:
+          type: string
+          description: Server-generated business/display number, independent of id.
+          minLength: 1
+          readOnly: true
+          example: MR-000123
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startPoint:
+          $ref: "#/components/schemas/PointSummary"
+        endPoint:
+          $ref: "#/components/schemas/PointSummary"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Start of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. The business time zone and
+            overnight-window interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            End of the acceptance window at the Route endPoint, in local business time. Not
+            departure time, arrival time, driving time or ETA. No ordering rule relative to
+            startTime is assumed until overnight-window semantics are approved.
+          example: "09:30"
+        status:
+          $ref: "#/components/schemas/RouteStatus"
+        comment:
+          type: string
+          nullable: true
+          description:
+            Optional note. Omit on creation for no note. In PATCH, omit to retain the note or send
+            null to clear it. An empty string is an empty note, not an omitted field.
+          example: Use the north unloading gate.
+    TripSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - date
+        - startTime
+        - endTime
+        - routeCount
+        - driver
+        - vehicle
+        - status
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        number:
+          type: string
+          description: Server-generated business/display number, independent of id.
+          minLength: 1
+          readOnly: true
+          example: TR-000125
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip start time, not a Route acceptance-window boundary. Business time zone and
+            overnight/multi-day interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip end time. No ordering or Route-date compatibility rule is inferred from
+            the frontend; these rules require approval.
+          example: "09:30"
+        routeCount:
+          type: integer
+          minimum: 1
+          readOnly: true
+          description: Number of Routes, without embedding the full Route array in list results.
+        driver:
+          $ref: "#/components/schemas/DriverSummary"
+        vehicle:
+          $ref: "#/components/schemas/VehicleSummary"
+        status:
+          $ref: "#/components/schemas/TripStatus"
+    TripResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - number
+        - date
+        - startTime
+        - endTime
+        - routes
+        - driver
+        - vehicle
+        - status
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        number:
+          type: string
+          description: Server-generated business/display number, independent of id.
+          minLength: 1
+          readOnly: true
+          example: TR-000125
+        date:
+          type: string
+          format: date
+          description: Calendar date in YYYY-MM-DD format. This is not a UTC timestamp.
+          example: "2026-11-12"
+        startTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip start time, not a Route acceptance-window boundary. Business time zone and
+            overnight/multi-day interpretation require approval.
+          example: "09:30"
+        endTime:
+          type: string
+          pattern: ^([01][0-9]|2[0-3]):[0-5][0-9]$
+          description:
+            Planned Trip end time. No ordering or Route-date compatibility rule is inferred from
+            the frontend; these rules require approval.
+          example: "09:30"
+        routes:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/RouteSummary"
+          description:
+            Routes in execution order. Routes do not embed this Trip. Current-data versus
+            historical-snapshot policy after directory/Route edits requires approval.
+        driver:
+          $ref: "#/components/schemas/DriverResponse"
+        vehicle:
+          $ref: "#/components/schemas/VehicleResponse"
+        status:
+          $ref: "#/components/schemas/TripStatus"
+        comment:
+          type: string
+          nullable: true
+          description:
+            Optional note. Omit on creation for no note. In PATCH, omit to retain the note or send
+            null to clear it. An empty string is an empty note, not an omitted field.
+          example: Use the north unloading gate.
+    CreateDriverRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - fullName
+        - contacts
+      properties:
+        fullName:
+          type: string
+          description: Driver display name. Not an authentication login or a unique identity.
+          minLength: 1
+        contacts:
+          type: string
+          description:
+            Free-form contact information from the current model. A structured contact format has
+            not been approved.
+    UpdateDriverRequest:
+      type: object
+      description:
+        Only supplied properties are changed. Omitted properties retain their values. null is
+        accepted only where explicitly allowed.
+      additionalProperties: false
+      properties:
+        fullName:
+          type: string
+          description: Driver display name. Not an authentication login or a unique identity.
+          minLength: 1
+        contacts:
+          type: string
+          description:
+            Free-form contact information from the current model. A structured contact format has
+            not been approved.
+      minProperties: 1
+    DriverResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - fullName
+        - contacts
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        fullName:
+          type: string
+          description: Driver display name. Not an authentication login or a unique identity.
+          minLength: 1
+        contacts:
+          type: string
+          description:
+            Free-form contact information from the current model. A structured contact format has
+            not been approved.
+    CreateVehicleRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - registrationNumber
+        - type
+        - maxWeight
+        - maxVolume
+      properties:
+        registrationNumber:
+          type: string
+          description: Vehicle registration number. Normalization and uniqueness rules require approval.
+          minLength: 1
+        type:
+          type: string
+          description: Free-form vehicle type; no type enum has been approved.
+          minLength: 1
+        maxWeight:
+          type: number
+          description:
+            Capacity value from the current model. Units, precision and numeric bounds require
+            approval; no unit is inferred from fixtures.
+        maxVolume:
+          type: number
+          description:
+            Capacity value from the current model. Units, precision and numeric bounds require
+            approval; no unit is inferred from fixtures.
+      description:
+        Initial status is server-owned and cannot be supplied. The initial-status policy is
+        pending approval; deployments without an approved policy return 409
+        BUSINESS_RULE_NOT_APPROVED without creating a record.
+    UpdateVehicleRequest:
+      type: object
+      description:
+        Only supplied properties are changed. Omitted properties retain their values. null is
+        accepted only where explicitly allowed. Status changes require an approved rule; otherwise
+        return 409 BUSINESS_RULE_NOT_APPROVED. No additional status values are defined by this
+        contract.
+      additionalProperties: false
+      properties:
+        registrationNumber:
+          type: string
+          description: Vehicle registration number. Normalization and uniqueness rules require approval.
+          minLength: 1
+        type:
+          type: string
+          description: Free-form vehicle type; no type enum has been approved.
+          minLength: 1
+        maxWeight:
+          type: number
+          description:
+            Capacity value from the current model. Units, precision and numeric bounds require
+            approval; no unit is inferred from fixtures.
+        maxVolume:
+          type: number
+          description:
+            Capacity value from the current model. Units, precision and numeric bounds require
+            approval; no unit is inferred from fixtures.
+        status:
+          type: string
+          description:
+            Status remains a string. Only available occurs in current mocks; it is not an
+            exhaustive enum. Initial status and update rules require approval. Do not infer
+            availability from this field alone.
+          example: available
+      minProperties: 1
+    VehicleResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - registrationNumber
+        - type
+        - maxWeight
+        - maxVolume
+        - status
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        registrationNumber:
+          type: string
+          description: Vehicle registration number. Normalization and uniqueness rules require approval.
+          minLength: 1
+        type:
+          type: string
+          description: Free-form vehicle type; no type enum has been approved.
+          minLength: 1
+        maxWeight:
+          type: number
+          description:
+            Capacity value from the current model. Units, precision and numeric bounds require
+            approval; no unit is inferred from fixtures.
+        maxVolume:
+          type: number
+          description:
+            Capacity value from the current model. Units, precision and numeric bounds require
+            approval; no unit is inferred from fixtures.
+        status:
+          type: string
+          description:
+            Status remains a string. Only available occurs in current mocks; it is not an
+            exhaustive enum. Initial status and update rules require approval. Do not infer
+            availability from this field alone.
+          example: available
+          readOnly: true
+    CreateDistributionCenterRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - address
+      properties:
+        name:
+          type: string
+          description: Distribution Center display name.
+          minLength: 1
+        address:
+          type: string
+          description: Free-form address from the current model.
+          minLength: 1
+    UpdateDistributionCenterRequest:
+      type: object
+      description:
+        Only supplied properties are changed. Omitted properties retain their values. null is
+        accepted only where explicitly allowed.
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: Distribution Center display name.
+          minLength: 1
+        address:
+          type: string
+          description: Free-form address from the current model.
+          minLength: 1
+      minProperties: 1
+    DistributionCenterResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - address
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        name:
+          type: string
+          description: Distribution Center display name.
+          minLength: 1
+        address:
+          type: string
+          description: Free-form address from the current model.
+          minLength: 1
+    CreateLogisticsPointRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - address
+        - coordinates
+        - acceptanceSchedule
+      properties:
+        name:
+          type: string
+          description: Logistics Point display name.
+          minLength: 1
+        address:
+          type: string
+          description: Free-form address from the current model.
+          minLength: 1
+        coordinates:
+          type: string
+          description:
+            Opaque coordinate text from the current model. No coordinate order, CRS, delimiter or
+            structured format is assumed.
+        acceptanceSchedule:
+          type: string
+          description:
+            Free-form acceptance schedule from the current model. It is not a machine-readable
+            scheduling or time-zone contract.
+      description:
+        Initial status is server-owned and cannot be supplied. The initial-status policy is
+        pending approval; deployments without an approved policy return 409
+        BUSINESS_RULE_NOT_APPROVED without creating a record.
+    UpdateLogisticsPointRequest:
+      type: object
+      description:
+        Only supplied properties are changed. Omitted properties retain their values. null is
+        accepted only where explicitly allowed. Status changes require an approved rule; otherwise
+        return 409 BUSINESS_RULE_NOT_APPROVED. No additional status values are defined by this
+        contract.
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: Logistics Point display name.
+          minLength: 1
+        address:
+          type: string
+          description: Free-form address from the current model.
+          minLength: 1
+        coordinates:
+          type: string
+          description:
+            Opaque coordinate text from the current model. No coordinate order, CRS, delimiter or
+            structured format is assumed.
+        acceptanceSchedule:
+          type: string
+          description:
+            Free-form acceptance schedule from the current model. It is not a machine-readable
+            scheduling or time-zone contract.
+        status:
+          type: string
+          description:
+            Status remains a string. Only active occurs in current mocks; it is not an exhaustive
+            enum. Initial status and update rules require approval.
+          example: active
+      minProperties: 1
+    LogisticsPointResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - address
+        - coordinates
+        - acceptanceSchedule
+        - status
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: record-example-1
+        name:
+          type: string
+          description: Logistics Point display name.
+          minLength: 1
+        address:
+          type: string
+          description: Free-form address from the current model.
+          minLength: 1
+        coordinates:
+          type: string
+          description:
+            Opaque coordinate text from the current model. No coordinate order, CRS, delimiter or
+            structured format is assumed.
+        acceptanceSchedule:
+          type: string
+          description:
+            Free-form acceptance schedule from the current model. It is not a machine-readable
+            scheduling or time-zone contract.
+        status:
+          type: string
+          description:
+            Status remains a string. Only active occurs in current mocks; it is not an exhaustive
+            enum. Initial status and update rules require approval.
+          example: active
+          readOnly: true
+    ChangeRouteStatusRequest:
+      type: object
+      description:
+        Requested target status only. Enum values are not a transition graph. Unknown values
+        are 400; unapproved or forbidden transitions are 409. No client-supplied author or event
+        timestamp is accepted.
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          $ref: "#/components/schemas/RouteStatus"
+    RouteStatusHistoryItem:
+      type: object
+      description:
+        Read-only history projection. The server reports recorded facts; client timeline marker
+        states are not persisted or returned.
+      additionalProperties: false
+      required:
+        - status
+        - occurredAt
+        - author
+      properties:
+        status:
+          $ref: "#/components/schemas/RouteStatus"
+        occurredAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description:
+            Server-recorded event timestamp with UTC Z or an explicit offset; never a preformatted
+            display date.
+          example: "2026-11-12T06:30:00Z"
+        author:
+          type: string
+          readOnly: true
+          description: Server-resolved dispatcher display name. Not supplied by the client.
+          example: Example Dispatcher
+        comment:
+          type: string
+          nullable: true
+          description: Optional human-readable event note, if recorded.
+    ChangeTripStatusRequest:
+      type: object
+      description:
+        Requested target status only. Enum values are not a transition graph. Unknown values
+        are 400; unapproved or forbidden transitions are 409. No client-supplied author or event
+        timestamp is accepted.
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          $ref: "#/components/schemas/TripStatus"
+    TripStatusHistoryItem:
+      type: object
+      description:
+        Read-only history projection. The server reports recorded facts; client timeline marker
+        states are not persisted or returned.
+      additionalProperties: false
+      required:
+        - status
+        - occurredAt
+        - author
+      properties:
+        status:
+          $ref: "#/components/schemas/TripStatus"
+        occurredAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description:
+            Server-recorded event timestamp with UTC Z or an explicit offset; never a preformatted
+            display date.
+          example: "2026-11-12T06:30:00Z"
+        author:
+          type: string
+          readOnly: true
+          description: Server-resolved dispatcher display name. Not supplied by the client.
+          example: Example Dispatcher
+        comment:
+          type: string
+          nullable: true
+          description: Optional human-readable event note, if recorded.
+    RouteListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteSummary"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    TripListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripSummary"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    DriverListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DriverResponse"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    VehicleListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/VehicleResponse"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    DistributionCenterListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistributionCenterResponse"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    LogisticsPointListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogisticsPointResponse"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    RouteStatusHistoryListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteStatusHistoryItem"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    TripStatusHistoryListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - total
+        - page
+        - limit
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripStatusHistoryItem"
+        total:
+          type: integer
+          minimum: 0
+          description: Total records matching the filters, before pagination.
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+    ValidationDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - field
+        - code
+        - message
+      properties:
+        field:
+          type: string
+          description: Request property path or query/path parameter name; array indices use bracket notation.
+          minLength: 1
+        code:
+          type: string
+          description: Machine-readable validation reason.
+          minLength: 1
+        message:
+          type: string
+          description: Safe explanation without echoing credentials or tokens.
+    ApiError:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - requestId
+      properties:
+        code:
+          type: string
+          description:
+            Stable machine-readable error code. Clients must branch on code, not message. Examples
+            include VALIDATION_ERROR, ROUTE_NOT_FOUND, ROUTE_ALREADY_ASSIGNED, RESOURCE_IN_USE,
+            BUSINESS_RULE_NOT_APPROVED and INTERNAL_ERROR.
+          minLength: 1
+        message:
+          type: string
+          description: Safe human-readable explanation. Must not contain secrets, SQL details or stack traces.
+        requestId:
+          type: string
+          description: Server-assigned request correlation identifier.
+          minLength: 1
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationDetail"
+          description: Optional validation details. Omit when there are no field-level errors.
+    LoginRequest:
+      type: object
+      description:
+        Provisional credential shape. The final login identifier must be approved before
+        authentication integration. No public registration, roles or permissions are provided.
+      additionalProperties: false
+      required:
+        - login
+        - password
+      properties:
+        login:
+          type: string
+          description:
+            Dispatcher login identifier. The unique identifier and its normalization require
+            approval. fullName is not assumed to be unique.
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+          format: password
+          writeOnly: true
+          description: Dispatcher password. Never return, log or include it in examples.
+    AccessTokenResponse:
+      type: object
+      description:
+        Confirmed access-token response only. Refresh-token delivery and storage are
+        intentionally unspecified until its transport is approved. Token lifetimes also require
+        approval.
+      additionalProperties: false
+      required:
+        - accessToken
+        - tokenType
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+          readOnly: true
+          description: JWT access token. No token literal is included in examples.
+        tokenType:
+          type: string
+          enum:
+            - Bearer
+          readOnly: true
+    CurrentDispatcherResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - fullName
+      properties:
+        id:
+          type: string
+          description: Opaque technical identifier. Never use a business number as a resource ID.
+          minLength: 1
+          readOnly: true
+          example: dispatcher-example-1
+        fullName:
+          type: string
+          description: Current dispatcher display name. A dispatcher is not a Driver record.
+  responses:
+    BadRequest:
+      description:
+        Invalid input, unknown properties or invalid referenced IDs. Validation details
+        identify affected fields.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            default:
+              value:
+                code: VALIDATION_ERROR
+                message: The request contains invalid fields.
+                requestId: request-example-1
+                details:
+                  - field: routeIds
+                    code: DUPLICATE_VALUE
+                    message: Route IDs must be unique.
+    Unauthorized:
+      description: Missing, invalid or expired credentials. Do not disclose whether a login identifier exists.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            default:
+              value:
+                code: UNAUTHENTICATED
+                message: Authentication is required or credentials are invalid.
+                requestId: request-example-5
+    NotFound:
+      description: The addressed resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            default:
+              value:
+                code: RESOURCE_NOT_FOUND
+                message: The requested resource was not found.
+                requestId: request-example-6
+    Conflict:
+      description:
+        Business conflict, conflicting concurrent operation or unapproved business rule. No
+        partial changes are committed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            default:
+              value:
+                code: ROUTE_ALREADY_ASSIGNED
+                message: A selected Route is already assigned to another Trip.
+                requestId: request-example-2
+            ruleNotApproved:
+              value:
+                code: BUSINESS_RULE_NOT_APPROVED
+                message: This operation requires an approved business rule.
+                requestId: request-example-3
+            resourceInUse:
+              value:
+                code: RESOURCE_IN_USE
+                message: The record is referenced by an existing Route or Trip.
+                requestId: request-example-4
+    InternalServerError:
+      description: Unexpected server error. No internal implementation details are exposed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+          examples:
+            default:
+              value:
+                code: INTERNAL_ERROR
+                message: An unexpected error occurred.
+                requestId: request-example-7

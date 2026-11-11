@@ -143,6 +143,7 @@ const extraRoute = () => {
 }
 
 it('shows a references loading error instead of the form and retries the references query', () => {
+  const initialTripCount = getMockTrips().length
   const refetch = vi.fn()
   vi.mocked(useGetTripReferencesQuery).mockReturnValue({
     data: undefined,
@@ -161,10 +162,11 @@ it('shows a references loading error instead of the form and retries the referen
   expect(screen.queryByRole('button', { name: 'Сохранить рейс' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: 'Повторить' }))
   expect(refetch).toHaveBeenCalledOnce()
-  expect(getMockTrips()).toHaveLength(2)
+  expect(getMockTrips()).toHaveLength(initialTripCount)
 })
 
 it('validates required fields without changing data', async () => {
+  const initialTripCount = getMockTrips().length
   renderCreate()
   await ready()
   expect(screen.getByLabelText('Статус').hasAttribute('disabled')).toBe(true)
@@ -189,7 +191,7 @@ it('validates required fields without changing data', async () => {
   driver.focus()
   fireEvent.change(driver, { target: { value: 'driver-001' } })
   expect(document.activeElement).toBe(driver)
-  expect(getMockTrips()).toHaveLength(2)
+  expect(getMockTrips()).toHaveLength(initialTripCount)
   expect(getMockRoutes()[1].status).toBe('created')
 })
 
@@ -270,6 +272,7 @@ it('filters selector, adds several Routes locally, prevents duplicates and disca
 })
 
 it('views Route in a new tab and removes only the local draft association', async () => {
+  const initialTripCount = getMockTrips().length
   const open = vi.spyOn(window, 'open').mockReturnValue(null)
   renderCreate()
   await ready()
@@ -301,12 +304,13 @@ it('views Route in a new tab and removes only the local draft association', asyn
   expect(getMockRoutes()[1].status).toBe('created')
   fireEvent.click(screen.getByRole('button', { name: 'Отмена' }))
   expect(await screen.findByRole('heading', { name: 'Рейсы' })).toBeTruthy()
-  expect(getMockTrips()).toHaveLength(2)
+  expect(getMockTrips()).toHaveLength(initialTripCount)
 })
 
 it.each(['Открыть рейс', 'К списку рейсов'] as const)(
   'saves once, shows success and navigates through %s',
   async (action) => {
+    const initialTripCount = getMockTrips().length
     renderCreate()
     await ready()
     fill()
@@ -320,7 +324,7 @@ it.each(['Открыть рейс', 'К списку рейсов'] as const)(
       within(modal).getByText('Рейс TR-000125 успешно создан'),
     ).toBeTruthy()
     expect(screen.getByLabelText('Текущий URL').textContent).toBe('/trips/new')
-    expect(getMockTrips()).toHaveLength(3)
+    expect(getMockTrips()).toHaveLength(initialTripCount + 1)
     expect(getMockRoutes()[1].status).toBe('assigned')
     fireEvent.click(within(modal).getByRole('button', { name: action }))
     if (action === 'Открыть рейс') {
@@ -366,6 +370,7 @@ it.each(['Открыть рейс', 'К списку рейсов'] as const)(
 )
 
 it('retains draft after a conflict and permits a corrected manual retry', async () => {
+  const initialTripCount = getMockTrips().length
   const extra = extraRoute()
   renderCreate()
   await ready()
@@ -407,10 +412,11 @@ it('retains draft after a conflict and permits a corrected manual retry', async 
   fireEvent.click(selector.getByRole('button', { name: 'Добавить в рейс' }))
   fireEvent.click(screen.getByRole('button', { name: 'Сохранить рейс' }))
   await screen.findByRole('dialog', { name: 'Рейс сохранён' })
-  expect(getMockTrips()).toHaveLength(4)
+  expect(getMockTrips()).toHaveLength(initialTripCount + 2)
 })
 
 it('focuses the route trigger for missing Routes without marking the button aria-invalid', async () => {
+  const initialTripCount = getMockTrips().length
   renderCreate()
   await ready()
   fill()
@@ -420,5 +426,5 @@ it('focuses the route trigger for missing Routes without marking the button aria
   expect(trigger.hasAttribute('aria-invalid')).toBe(false)
   const error = screen.getByText('Добавьте хотя бы один маршрут')
   expect(trigger.getAttribute('aria-describedby')).toBe(error.id)
-  expect(getMockTrips()).toHaveLength(2)
+  expect(getMockTrips()).toHaveLength(initialTripCount)
 })

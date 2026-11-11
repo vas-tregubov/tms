@@ -69,9 +69,6 @@ afterAll(() => {
 })
 
 beforeEach(() => {
-  resetMockRouteSource()
-  store.dispatch(resetCreateRoute())
-  store.dispatch(baseApi.util.resetApiState())
   vi.mocked(useCreateRouteMutation).mockImplementation(
     actual.useCreateRouteMutation,
   )

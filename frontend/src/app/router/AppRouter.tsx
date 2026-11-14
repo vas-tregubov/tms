@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router'
 import EditRoutePage from '@/pages/edit-route'
 import CreateTripPage from '@/pages/create-trip'
 import CreateRoutePage from '@/pages/create-route'
+import LoginPage from '@/pages/login'
 import TripsPage from '@/pages/trips'
 import TripDetailsPage from '@/pages/trip-details'
 import PlaceholderPage from '@/pages/placeholder'
@@ -13,14 +14,7 @@ import RoutedAppLayout from './RoutedAppLayout'
 
 const AppRouter = () => (
   <Routes>
-    <Route
-      path="/login"
-      element={
-        <main className="p-5">
-          <PlaceholderPage title="Вход" />
-        </main>
-      }
-    />
+    <Route path="/login" element={<LoginPage />} />
     <Route element={<RoutedAppLayout />}>
       <Route index element={<PlaceholderPage title="Главная" />} />
       <Route path="routes">

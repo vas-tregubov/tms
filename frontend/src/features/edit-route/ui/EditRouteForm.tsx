@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 
 import {
-  ROUTE_FORM_STEPS,
   getRouteFormChanges,
+  type Route,
+  ROUTE_FORM_STEPS,
   ROUTE_STATUS_OPTIONS,
+  type RouteFormErrors,
   RouteFormFields,
+  type RouteFormValues,
   useGetRoutePointsQuery,
   useUpdateRouteMutation,
   validateRouteFormStep,
-  type Route,
-  type RouteFormErrors,
-  type RouteFormValues,
 } from '@/entities/route'
+
 import ArrowLeftIcon from '@/shared/assets/icons/arrow-left.svg?react'
 import ArrowRightIcon from '@/shared/assets/icons/arrow-right.svg?react'
 import SaveIcon from '@/shared/assets/icons/save.svg?react'

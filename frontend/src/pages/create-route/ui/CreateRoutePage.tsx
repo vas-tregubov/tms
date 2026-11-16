@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
-import type { Route } from '@/entities/route'
-import LinkIcon from '@/shared/assets/icons/link.svg?react'
 import CreateRouteForm from '@/features/create-route'
+
+import type { Route } from '@/entities/route'
+
+import LinkIcon from '@/shared/assets/icons/link.svg?react'
 import Breadcrumbs from '@/shared/ui/breadcrumbs'
 import Button from '@/shared/ui/button'
 import Modal from '@/shared/ui/modal'

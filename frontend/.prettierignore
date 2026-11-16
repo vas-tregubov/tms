@@ -2,3 +2,6 @@ node_modules/
 dist/
 coverage/
 package-lock.json
+storybook-static/
+test-results/
+playwright-report/

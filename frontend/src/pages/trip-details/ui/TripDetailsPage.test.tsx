@@ -11,7 +11,9 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
+
 import { useGetTripByIdQuery, useGetTripTimelineQuery } from '@/entities/trip'
+
 import { baseApi } from '@/shared/api'
 
 vi.mock('@/entities/trip', async (importOriginal) => {

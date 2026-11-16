@@ -1,4 +1,5 @@
 import { getTripStatusOption, type TripStatusRecord } from '@/entities/trip'
+
 import Button from '@/shared/ui/button'
 import Loader from '@/shared/ui/loader'
 import StatusBadge from '@/shared/ui/status-badge'

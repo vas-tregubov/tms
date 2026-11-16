@@ -1,6 +1,7 @@
 import { useId } from 'react'
 
 import { TRIP_STATUS_OPTIONS } from '@/entities/trip'
+
 import Button from '@/shared/ui/button'
 import DateRange from '@/shared/ui/date-range'
 import SearchInput from '@/shared/ui/search-input'

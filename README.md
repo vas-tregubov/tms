@@ -2,54 +2,48 @@
 
 Transport Management System for route planning and delivery operations.
 
-## About the Project
+## Current State
 
-TMS is designed to create and manage transportation routes between distribution centers and fulfillment centers.
+The dispatcher frontend runs with in-memory mock data. It includes Routes List,
+Details, Create and Edit; Trips List, Details and Create; filtering, navigation,
+and application error boundaries. Mock changes last for the current browser
+session and are lost on reload.
 
-The project is currently in the MVP development stage.
+The NestJS backend is a scaffold with a sample endpoint and Jest tests. The
+frontend is not connected to a production backend. PostgreSQL persistence and
+the HTTP API are documented designs, not implemented integrations.
 
-## MVP Scope
+## Stack
 
-- distribution center and fulfillment center directories;
-- driver directory;
-- vehicle directory;
-- route creation;
-- driver and vehicle assignment;
-- manual route status updates;
-- completed route registry.
+- Frontend: React, TypeScript, Vite, Tailwind CSS, React Router, Redux Toolkit
+  and RTK Query; Storybook, Vitest/React Testing Library and Playwright.
+- Backend: NestJS and TypeScript; Jest.
+- CI: GitHub Actions frontend checks.
 
-## Planned Technology Stack
+## Local Development
 
-### Frontend
+Install dependencies and configure Git hooks from the repository root:
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- Storybook
-- Vitest
-- Playwright
+```bash
+npm run setup
+npm --prefix frontend run dev
+```
 
-### Backend
+The frontend works independently of the backend. To run the backend scaffold:
 
-- NestJS
-- TypeScript
+```bash
+npm --prefix backend run start:dev
+```
 
-### Data
+## Project Documentation
 
-- mock data during the initial development stage;
-- PostgreSQL.
+- [Contributing and Git workflow](CONTRIBUTING.md)
+- [Code style](docs/code-style/README.md)
+- [Frontend testing strategy and commands](docs/testing-strategy/README.md)
+- [Current domain model](docs/domain-model.md)
+- [Planned persistence model and open decisions](docs/database/erd.md)
+- [Planned OpenAPI contract](docs/api/openapi.yaml)
+- [Backend commands](backend/README.md)
 
-### Infrastructure
-
-- Docker
-- Docker Compose
-- GitHub Actions
-
-## Project Status
-
-Project initialization and MVP preparation.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the Git workflow.
+Domain Model and OpenAPI still contain field shapes that need synchronization
+with the persistence design in a separate task.

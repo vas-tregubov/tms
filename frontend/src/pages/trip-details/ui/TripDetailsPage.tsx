@@ -6,15 +6,16 @@ import {
   useGetTripByIdQuery,
   useGetTripTimelineQuery,
 } from '@/entities/trip'
+
 import EditIcon from '@/shared/assets/icons/edit.svg?react'
 import Breadcrumbs from '@/shared/ui/breadcrumbs'
 import Button from '@/shared/ui/button'
 import Loader from '@/shared/ui/loader'
 import StatusBadge from '@/shared/ui/status-badge'
 
+import TripHistory from './TripHistory'
 import TripRoutes from './TripRoutes'
 import TripTimeline from './TripTimeline'
-import TripHistory from './TripHistory'
 
 const TripDetailsPage = () => {
   const { tripId } = useParams<{ tripId: string }>()

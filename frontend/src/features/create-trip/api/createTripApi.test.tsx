@@ -12,15 +12,16 @@ import {
   resetMockRouteSource,
 } from '@/entities/route/api/mockRouteSource'
 import {
+  type CreateTripInput,
   useGetTripByIdQuery,
   useGetTripsQuery,
-  type CreateTripInput,
 } from '@/entities/trip'
 import {
   getMockTrips,
   resetMockTripSource,
   saveMockTrip,
 } from '@/entities/trip/api/mockTripSource'
+
 import { baseApi } from '@/shared/api'
 
 import { saveTripWithRoutes, useCreateTripMutation } from './createTripApi'

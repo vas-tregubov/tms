@@ -19,7 +19,9 @@ import {
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
-import { useGetTripsQuery, type Trip } from '@/entities/trip'
+
+import { type Trip, useGetTripsQuery } from '@/entities/trip'
+
 import { baseApi } from '@/shared/api'
 
 vi.mock('@/entities/trip', async (importOriginal) => {

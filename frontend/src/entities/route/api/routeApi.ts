@@ -3,9 +3,9 @@ import { baseApi } from '@/shared/api'
 import type { Route } from '../model/types'
 import {
   createMockRoute,
-  updateMockRoute,
   getMockRoutePoints,
   getMockRoutes,
+  updateMockRoute,
 } from './mockRouteSource'
 import { mockRouteTimelines } from './mockRouteTimelines'
 import type {

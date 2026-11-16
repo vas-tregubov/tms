@@ -19,18 +19,21 @@ import {
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
-import { useGetTripReferencesQuery } from '@/entities/trip'
+
+import { saveTripWithRoutes } from '@/features/create-trip/api/createTripApi'
+
 import {
   createMockRoute,
   getMockRoutes,
   resetMockRouteSource,
 } from '@/entities/route/api/mockRouteSource'
+import { useGetTripReferencesQuery } from '@/entities/trip'
 import {
   getMockTrips,
   resetMockTripSource,
 } from '@/entities/trip/api/mockTripSource'
+
 import { baseApi } from '@/shared/api'
-import { saveTripWithRoutes } from '@/features/create-trip/api/createTripApi'
 
 vi.mock('@/entities/trip', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/entities/trip')>()

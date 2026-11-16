@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
-import { useGetTripReferencesQuery, type Trip } from '@/entities/trip'
 import CreateTripForm from '@/features/create-trip'
+
+import { type Trip, useGetTripReferencesQuery } from '@/entities/trip'
+
 import LinkIcon from '@/shared/assets/icons/link.svg?react'
 import Breadcrumbs from '@/shared/ui/breadcrumbs'
 import Button from '@/shared/ui/button'

@@ -1,10 +1,11 @@
-import { useState } from 'react'
-
 import { skipToken } from '@reduxjs/toolkit/query'
+import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
-import { useGetRouteByIdQuery, type Route } from '@/entities/route'
 import EditRouteForm from '@/features/edit-route'
+
+import { type Route, useGetRouteByIdQuery } from '@/entities/route'
+
 import LinkIcon from '@/shared/assets/icons/link.svg?react'
 import Breadcrumbs from '@/shared/ui/breadcrumbs'
 import Button from '@/shared/ui/button'

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { type ReactNode, useEffect, useId, useRef } from 'react'
 
 import CloseIcon from '@/shared/assets/icons/close.svg?react'
 import IconButton from '@/shared/ui/icon-button'

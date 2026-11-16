@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 
 import { getRouteStatusOption, type Route } from '@/entities/route'
+
 import StatusBadge from '@/shared/ui/status-badge'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'
 

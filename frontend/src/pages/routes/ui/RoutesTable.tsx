@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import {
+  type Route,
   ROUTE_STATUS_OPTIONS,
   RouteTimeHelp,
-  type Route,
 } from '@/entities/route'
+
 import ActionMenu, { ActionMenuItem } from '@/shared/ui/action-menu'
 import StatusBadge from '@/shared/ui/status-badge'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'

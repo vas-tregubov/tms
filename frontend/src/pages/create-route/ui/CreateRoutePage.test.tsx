@@ -22,16 +22,19 @@ import {
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
+
+import { resetCreateRoute } from '@/features/create-route'
+
 import {
-  useCreateRouteMutation,
   type CreateRouteInput,
   type Route,
+  useCreateRouteMutation,
 } from '@/entities/route'
 import {
   getMockRoutes,
   resetMockRouteSource,
 } from '@/entities/route/api/mockRouteSource'
-import { resetCreateRoute } from '@/features/create-route'
+
 import { baseApi } from '@/shared/api'
 
 vi.mock('@/entities/route', async (importOriginal) => {

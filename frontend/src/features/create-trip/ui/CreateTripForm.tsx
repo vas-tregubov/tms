@@ -4,6 +4,7 @@ import type { Driver } from '@/entities/driver'
 import { useGetRoutesQuery } from '@/entities/route'
 import { getTripStatusOption, type Trip } from '@/entities/trip'
 import type { Vehicle } from '@/entities/vehicle'
+
 import SaveIcon from '@/shared/assets/icons/save.svg?react'
 import Button from '@/shared/ui/button'
 import DateInput from '@/shared/ui/date-input'
@@ -13,9 +14,9 @@ import Select from '@/shared/ui/select'
 
 import { useCreateTripMutation } from '../api/createTripApi'
 import {
-  validateTripDraft,
   type TripDraft,
   type TripDraftErrors,
+  validateTripDraft,
 } from '../lib/validation'
 import DraftRoutes from './DraftRoutes'
 import RouteSelector from './RouteSelector'

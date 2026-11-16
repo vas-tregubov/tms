@@ -20,12 +20,15 @@ import {
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
+
+import { resetCreateRoute } from '@/features/create-route'
+
 import { useGetRouteByIdQuery, useUpdateRouteMutation } from '@/entities/route'
 import {
   resetMockRouteSource,
   updateMockRoute,
 } from '@/entities/route/api/mockRouteSource'
-import { resetCreateRoute } from '@/features/create-route'
+
 import { baseApi } from '@/shared/api'
 
 vi.mock('@/entities/route/api/mockRouteSource', async (importOriginal) => {

@@ -1,11 +1,13 @@
-import type { RouteTimelineItem } from '../api/types'
+import { formatRecordedDateTime } from '@/shared/lib/date-time'
+
+import type { RouteStatusRecord } from '../api/types'
 import { getRouteStatusOption, ROUTE_STATUS_OPTIONS } from './statusOptions'
 
 // Route.status owns progress; only recorded events supply timestamps and authors.
 export const getRouteTimelineProgress = (
   status: string,
-  timeline: RouteTimelineItem[],
-): RouteTimelineItem[] => {
+  timeline: RouteStatusRecord[],
+) => {
   const current = getRouteStatusOption(status)
   const currentIndex = ROUTE_STATUS_OPTIONS.findIndex(
     (option) => option === current,
@@ -16,9 +18,10 @@ export const getRouteTimelineProgress = (
     )
     return {
       status: option.value,
-      dateTime: event?.dateTime ?? '',
+      dateTime: event ? formatRecordedDateTime(event.occurredAt) : '',
       author: event?.author ?? '',
-      state: index <= currentIndex ? 'completed' : 'pending',
+      state:
+        index <= currentIndex ? ('completed' as const) : ('pending' as const),
     }
   })
 }

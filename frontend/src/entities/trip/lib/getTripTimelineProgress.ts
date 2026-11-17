@@ -1,3 +1,5 @@
+import { formatRecordedDateTime } from '@/shared/lib/date-time'
+
 import type { TripStatusRecord } from '../api/types'
 import { getTripStatusOption, TRIP_STATUS_OPTIONS } from './statusOptions'
 
@@ -15,7 +17,7 @@ export const getTripTimelineProgress = (
     return {
       status: option.value,
       label: option.label,
-      dateTime: record?.dateTime ?? '',
+      dateTime: record ? formatRecordedDateTime(record.occurredAt) : '',
       author: record?.author ?? '',
       state:
         index <= currentIndex ? ('completed' as const) : ('pending' as const),

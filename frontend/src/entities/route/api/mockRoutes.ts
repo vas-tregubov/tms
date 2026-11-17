@@ -4,14 +4,17 @@ const distributionCenter: Route['startPoint'] = {
   id: 'dc-001',
   name: 'РЦ Северный',
   address: 'Москва, Складская улица, 1',
+  latitude: null,
+  longitude: null,
 }
 
 const logisticsPoint: Route['endPoint'] = {
   id: 'point-001',
   name: 'Логистический пункт Центральный',
   address: 'Москва, Транспортная улица, 10',
-  coordinates: '55.7558, 37.6173',
-  acceptanceSchedule: 'Ежедневно 08:00–20:00',
+  latitude: 55.7558,
+  longitude: 37.6173,
+  schedule: 'Ежедневно 08:00–20:00',
   status: 'active',
 }
 

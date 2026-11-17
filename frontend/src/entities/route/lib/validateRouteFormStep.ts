@@ -15,7 +15,7 @@ export const validateRouteFormStep = (
       date < Date.UTC(1930, 0, 1) ||
       date > Date.UTC(2099, 11, 31)
     )
-      errors.date = 'Выберите дату отправки'
+      errors.date = 'Выберите дату маршрута'
   }
   if (step === 2) {
     if (!draft.startPointId) errors.startPointId = 'Выберите точку отправления'
@@ -23,9 +23,9 @@ export const validateRouteFormStep = (
   }
   if (step === 3) {
     if (!isTime(draft.startTime))
-      errors.startTime = 'Введите корректное время отправления'
+      errors.startTime = 'Введите корректное время начала приёмки'
     if (!isTime(draft.endTime))
-      errors.endTime = 'Введите корректное время прибытия'
+      errors.endTime = 'Введите корректное время окончания приёмки'
   }
   return errors
 }

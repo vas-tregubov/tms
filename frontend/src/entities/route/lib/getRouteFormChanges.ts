@@ -17,6 +17,6 @@ export const getRouteFormChanges = (
     endPoint,
     startTime: draft.startTime,
     endTime: draft.endTime,
-    comment: draft.comment || undefined,
+    comment: draft.comment || null,
   }
 }

@@ -1,6 +1,8 @@
 import type { DistributionCenter } from '@/entities/distribution-center'
 import type { LogisticsPoint } from '@/entities/logistics-point'
 
+export type RouteStatus = 'created' | 'assigned' | 'intransit' | 'completed'
+
 export type Route = {
   id: string
   number: string
@@ -9,6 +11,6 @@ export type Route = {
   endPoint: DistributionCenter | LogisticsPoint
   startTime: string
   endTime: string
-  comment?: string
-  status: string
+  comment?: string | null
+  status: RouteStatus
 }

@@ -1,4 +1,4 @@
-export type { Trip } from './model/types'
+export type { Trip, TripStatus } from './model/types'
 export {
   useGetTripsQuery,
   useGetTripReferencesQuery,

@@ -34,18 +34,19 @@ tags:
 security:
   - bearerAuth: []
 x-open-decisions:
-  - Route and Trip time zones, overnight windows and multi-day scheduling.
+  - Trip migration to offset-bearing startsAt/endsAt is blocked on business/display timezone
+    and multi-day date-filter semantics. The legacy date/startTime/endTime fields remain together
+    until that decision; Route acceptance-window timezone/overnight interpretation is also open.
   - Manual status transition matrices, same-status requests and status propagation.
   - Trip editing, reordering, reassignment and removal/release rules; completed-document retention.
-  - Route membership lifetime, historical snapshots and deletion policies beyond conservative
-    conflicts.
+  - Route membership lifetime, exact snapshot field sets/capture boundaries and deletion policies
+    beyond conservative conflicts. Historical fixation of Route data used at assignment is required.
   - Driver/Vehicle scheduling availability and compatibility of Route dates/windows with a Trip.
   - Vehicle and Logistics Point initial/status-update policies; no exhaustive enums exist.
-  - Capacity units/bounds, coordinate format, structured contacts/schedules and registration
-    uniqueness.
+  - Capacity bounds/volume scale, phone/registration normalization and directory status policies.
   - Dispatcher login identifier, JWT lifetimes, refresh transport/rotation and logout guarantees.
-  - PointReference {type,id} is the proposed unambiguous API representation; frontend integration
-    needs an adapter.
+  - PointReference {type,id} is retained because independent directory IDs may overlap. Current mock
+    commands use internal point values and require an adapter before HTTP integration.
   - Lost-update policy for concurrent general PATCH operations; no version/ETag guarantee is
     invented.
 paths:
@@ -271,7 +272,7 @@ paths:
       summary: List Trips
       operationId: listTrips
       description:
-        Paginated standalone Trips list. Search matches number, driver.fullName and
+        Paginated standalone Trips list. Search matches number, driver firstName, lastName, middleName and
         vehicle.registrationNumber. Date bounds are inclusive; inverted bounds are 400. Default
         ordering is business number descending, then technical ID ascending. Results must have
         deterministic ordering; no client sorting parameter is introduced.
@@ -299,7 +300,9 @@ paths:
                     routeCount: 2
                     driver:
                       id: driver-example-1
-                      fullName: Example Driver
+                      firstName: Example
+                      lastName: Driver
+                      middleName: null
                     vehicle:
                       id: vehicle-example-1
                       registrationNumber: EXAMPLE-01
@@ -388,14 +391,16 @@ paths:
                     status: assigned
                 driver:
                   id: driver-example-1
-                  fullName: Example Driver
-                  contacts: Example contact details
+                  firstName: Example
+                  lastName: Driver
+                  middleName: null
+                  phone: "+70000000001"
                 vehicle:
                   id: vehicle-example-1
                   registrationNumber: EXAMPLE-01
                   type: Example van
-                  maxWeight: 3500
-                  maxVolume: 18
+                  maxWeightKg: 3500
+                  maxVolumeM3: 18
                   status: available
                 status: assigned
                 comment: Follow the specified Route order.
@@ -469,14 +474,16 @@ paths:
                     status: assigned
                 driver:
                   id: driver-example-1
-                  fullName: Example Driver
-                  contacts: Example contact details
+                  firstName: Example
+                  lastName: Driver
+                  middleName: null
+                  phone: "+70000000001"
                 vehicle:
                   id: vehicle-example-1
                   registrationNumber: EXAMPLE-01
                   type: Example van
-                  maxWeight: 3500
-                  maxVolume: 18
+                  maxWeightKg: 3500
+                  maxVolumeM3: 18
                   status: available
                 status: assigned
                 comment: Follow the specified Route order.
@@ -558,8 +565,8 @@ paths:
       summary: List Drivers
       operationId: listDrivers
       description:
-        Paginated standalone Drivers list. Search matches fullName and contacts. Default
-        ordering is fullName ascending, then technical ID ascending. Results must have deterministic
+        Paginated standalone Drivers list. Search matches firstName, lastName, middleName and phone. Default
+        ordering is lastName, firstName, middleName ascending (missing middleName first), then technical ID ascending. Results must have deterministic
         ordering; no client sorting parameter is introduced.
       parameters:
         - $ref: "#/components/parameters/Page"
@@ -575,8 +582,10 @@ paths:
               example:
                 items:
                   - id: driver-example-1
-                    fullName: Example Driver
-                    contacts: Example contact details
+                    firstName: Example
+                    lastName: Driver
+                    middleName: null
+                    phone: "+70000000001"
                 total: 1
                 page: 1
                 limit: 20
@@ -601,8 +610,10 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateDriverRequest"
             example:
-              fullName: Example Driver
-              contacts: Example contact details
+              firstName: Example
+              lastName: Driver
+              middleName: null
+              phone: "+70000000001"
       responses:
         "201":
           description: Driver created.
@@ -612,8 +623,10 @@ paths:
                 $ref: "#/components/schemas/DriverResponse"
               example:
                 id: driver-example-1
-                fullName: Example Driver
-                contacts: Example contact details
+                firstName: Example
+                lastName: Driver
+                middleName: null
+                phone: "+70000000001"
           headers:
             Location:
               description: URI of the created resource, addressed by technical ID.
@@ -647,8 +660,10 @@ paths:
                 $ref: "#/components/schemas/DriverResponse"
               example:
                 id: driver-example-1
-                fullName: Example Driver
-                contacts: Example contact details
+                firstName: Example
+                lastName: Driver
+                middleName: null
+                phone: "+70000000001"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -674,7 +689,7 @@ paths:
             schema:
               $ref: "#/components/schemas/UpdateDriverRequest"
             example:
-              contacts: Updated example contact
+              phone: "+70000000001"
       responses:
         "200":
           description: Driver after the update.
@@ -740,8 +755,8 @@ paths:
                   - id: vehicle-example-1
                     registrationNumber: EXAMPLE-01
                     type: Example van
-                    maxWeight: 3500
-                    maxVolume: 18
+                    maxWeightKg: 3500
+                    maxVolumeM3: 18
                     status: available
                 total: 1
                 page: 1
@@ -771,8 +786,8 @@ paths:
             example:
               registrationNumber: EXAMPLE-01
               type: Example van
-              maxWeight: 3500
-              maxVolume: 18
+              maxWeightKg: 3500
+              maxVolumeM3: 18
       responses:
         "201":
           description: Vehicle created.
@@ -784,8 +799,8 @@ paths:
                 id: vehicle-example-1
                 registrationNumber: EXAMPLE-01
                 type: Example van
-                maxWeight: 3500
-                maxVolume: 18
+                maxWeightKg: 3500
+                maxVolumeM3: 18
                 status: available
           headers:
             Location:
@@ -822,8 +837,8 @@ paths:
                 id: vehicle-example-1
                 registrationNumber: EXAMPLE-01
                 type: Example van
-                maxWeight: 3500
-                maxVolume: 18
+                maxWeightKg: 3500
+                maxVolumeM3: 18
                 status: available
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -916,6 +931,8 @@ paths:
                   - id: dc-example-1
                     name: Example Distribution Center
                     address: Example warehouse address
+                    latitude: null
+                    longitude: null
                 total: 1
                 page: 1
                 limit: 20
@@ -942,6 +959,8 @@ paths:
             example:
               name: Example Distribution Center
               address: Example warehouse address
+              latitude: null
+              longitude: null
       responses:
         "201":
           description: Distribution Center created.
@@ -953,6 +972,8 @@ paths:
                 id: dc-example-1
                 name: Example Distribution Center
                 address: Example warehouse address
+                latitude: null
+                longitude: null
           headers:
             Location:
               description: URI of the created resource, addressed by technical ID.
@@ -988,6 +1009,8 @@ paths:
                 id: dc-example-1
                 name: Example Distribution Center
                 address: Example warehouse address
+                latitude: null
+                longitude: null
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -1079,8 +1102,9 @@ paths:
                   - id: lp-example-1
                     name: Example Logistics Point
                     address: Example delivery address
-                    coordinates: 55.7558, 37.6173
-                    acceptanceSchedule: Daily 08:00-20:00
+                    latitude: 55.7558
+                    longitude: 37.6173
+                    schedule: Daily 08:00-20:00
                     status: active
                 total: 1
                 page: 1
@@ -1110,8 +1134,9 @@ paths:
             example:
               name: Example Logistics Point
               address: Example delivery address
-              coordinates: 55.7558, 37.6173
-              acceptanceSchedule: Daily 08:00-20:00
+              latitude: 55.7558
+              longitude: 37.6173
+              schedule: Daily 08:00-20:00
       responses:
         "201":
           description: Logistics Point created.
@@ -1123,8 +1148,9 @@ paths:
                 id: lp-example-1
                 name: Example Logistics Point
                 address: Example delivery address
-                coordinates: 55.7558, 37.6173
-                acceptanceSchedule: Daily 08:00-20:00
+                latitude: 55.7558
+                longitude: 37.6173
+                schedule: Daily 08:00-20:00
                 status: active
           headers:
             Location:
@@ -1161,8 +1187,9 @@ paths:
                 id: lp-example-1
                 name: Example Logistics Point
                 address: Example delivery address
-                coordinates: 55.7558, 37.6173
-                acceptanceSchedule: Daily 08:00-20:00
+                latitude: 55.7558
+                longitude: 37.6173
+                schedule: Daily 08:00-20:00
                 status: active
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -1644,7 +1671,9 @@ components:
       additionalProperties: false
       required:
         - id
-        - fullName
+        - firstName
+        - lastName
+        - middleName
       properties:
         id:
           type: string
@@ -1652,8 +1681,16 @@ components:
           minLength: 1
           readOnly: true
           example: record-example-1
-        fullName:
+        firstName:
           type: string
+          minLength: 1
+        lastName:
+          type: string
+          minLength: 1
+        middleName:
+          type: string
+          nullable: true
+          description: Optional patronymic; responses use null when absent. PATCH null clears it.
     VehicleSummary:
       type: object
       additionalProperties: false
@@ -2085,8 +2122,9 @@ components:
           items:
             $ref: "#/components/schemas/RouteSummary"
           description:
-            Routes in execution order. Routes do not embed this Trip. Current-data versus
-            historical-snapshot policy after directory/Route edits requires approval.
+            Routes in execution order. Routes do not embed this Trip. Route data used at assignment must remain historically fixed for that Trip; later
+            Route edits must not rewrite it. The exact retained field set and snapshot schema
+            remain pending in the ERD; no new snapshot payload is defined here.
         driver:
           $ref: "#/components/schemas/DriverResponse"
         vehicle:
@@ -2104,18 +2142,24 @@ components:
       type: object
       additionalProperties: false
       required:
-        - fullName
-        - contacts
+        - firstName
+        - lastName
+        - phone
       properties:
-        fullName:
+        firstName:
           type: string
-          description: Driver display name. Not an authentication login or a unique identity.
           minLength: 1
-        contacts:
+        lastName:
           type: string
-          description:
-            Free-form contact information from the current model. A structured contact format has
-            not been approved.
+          minLength: 1
+        middleName:
+          type: string
+          nullable: true
+          description: Optional patronymic; responses use null when absent. PATCH null clears it.
+        phone:
+          type: string
+          minLength: 1
+          description: Driver phone. Canonicalization and current-directory uniqueness input policy remain open.
     UpdateDriverRequest:
       type: object
       description:
@@ -2123,23 +2167,30 @@ components:
         accepted only where explicitly allowed.
       additionalProperties: false
       properties:
-        fullName:
+        firstName:
           type: string
-          description: Driver display name. Not an authentication login or a unique identity.
           minLength: 1
-        contacts:
+        lastName:
           type: string
-          description:
-            Free-form contact information from the current model. A structured contact format has
-            not been approved.
+          minLength: 1
+        middleName:
+          type: string
+          nullable: true
+          description: Optional patronymic; responses use null when absent. PATCH null clears it.
+        phone:
+          type: string
+          minLength: 1
+          description: Driver phone. Canonicalization and current-directory uniqueness input policy remain open.
       minProperties: 1
     DriverResponse:
       type: object
       additionalProperties: false
       required:
         - id
-        - fullName
-        - contacts
+        - firstName
+        - lastName
+        - middleName
+        - phone
       properties:
         id:
           type: string
@@ -2147,23 +2198,28 @@ components:
           minLength: 1
           readOnly: true
           example: record-example-1
-        fullName:
+        firstName:
           type: string
-          description: Driver display name. Not an authentication login or a unique identity.
           minLength: 1
-        contacts:
+        lastName:
           type: string
-          description:
-            Free-form contact information from the current model. A structured contact format has
-            not been approved.
+          minLength: 1
+        middleName:
+          type: string
+          nullable: true
+          description: Optional patronymic; responses use null when absent. PATCH null clears it.
+        phone:
+          type: string
+          minLength: 1
+          description: Driver phone. Canonicalization and current-directory uniqueness input policy remain open.
     CreateVehicleRequest:
       type: object
       additionalProperties: false
       required:
         - registrationNumber
         - type
-        - maxWeight
-        - maxVolume
+        - maxWeightKg
+        - maxVolumeM3
       properties:
         registrationNumber:
           type: string
@@ -2173,16 +2229,12 @@ components:
           type: string
           description: Free-form vehicle type; no type enum has been approved.
           minLength: 1
-        maxWeight:
+        maxWeightKg:
+          type: integer
+          description: Payload capacity in kilograms. Numeric bounds require approval.
+        maxVolumeM3:
           type: number
-          description:
-            Capacity value from the current model. Units, precision and numeric bounds require
-            approval; no unit is inferred from fixtures.
-        maxVolume:
-          type: number
-          description:
-            Capacity value from the current model. Units, precision and numeric bounds require
-            approval; no unit is inferred from fixtures.
+          description: Volume capacity in cubic metres. Bounds and decimal scale require approval.
       description:
         Initial status is server-owned and cannot be supplied. The initial-status policy is
         pending approval; deployments without an approved policy return 409
@@ -2204,16 +2256,12 @@ components:
           type: string
           description: Free-form vehicle type; no type enum has been approved.
           minLength: 1
-        maxWeight:
+        maxWeightKg:
+          type: integer
+          description: Payload capacity in kilograms. Numeric bounds require approval.
+        maxVolumeM3:
           type: number
-          description:
-            Capacity value from the current model. Units, precision and numeric bounds require
-            approval; no unit is inferred from fixtures.
-        maxVolume:
-          type: number
-          description:
-            Capacity value from the current model. Units, precision and numeric bounds require
-            approval; no unit is inferred from fixtures.
+          description: Volume capacity in cubic metres. Bounds and decimal scale require approval.
         status:
           type: string
           description:
@@ -2229,8 +2277,8 @@ components:
         - id
         - registrationNumber
         - type
-        - maxWeight
-        - maxVolume
+        - maxWeightKg
+        - maxVolumeM3
         - status
       properties:
         id:
@@ -2247,16 +2295,12 @@ components:
           type: string
           description: Free-form vehicle type; no type enum has been approved.
           minLength: 1
-        maxWeight:
+        maxWeightKg:
+          type: integer
+          description: Payload capacity in kilograms. Numeric bounds require approval.
+        maxVolumeM3:
           type: number
-          description:
-            Capacity value from the current model. Units, precision and numeric bounds require
-            approval; no unit is inferred from fixtures.
-        maxVolume:
-          type: number
-          description:
-            Capacity value from the current model. Units, precision and numeric bounds require
-            approval; no unit is inferred from fixtures.
+          description: Volume capacity in cubic metres. Bounds and decimal scale require approval.
         status:
           type: string
           description:
@@ -2280,6 +2324,39 @@ components:
           type: string
           description: Free-form address from the current model.
           minLength: 1
+        latitude:
+          type: number
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Latitude; supplied together with longitude. Responses use null when absent.
+        longitude:
+          type: number
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Longitude; supplied together with latitude. A null pair clears coordinates.
+      oneOf:
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+              nullable: true
+              enum: [null]
+            longitude:
+              type: number
+              nullable: true
+              enum: [null]
+        - not:
+            anyOf:
+              - required: [latitude]
+              - required: [longitude]
     UpdateDistributionCenterRequest:
       type: object
       description:
@@ -2295,7 +2372,40 @@ components:
           type: string
           description: Free-form address from the current model.
           minLength: 1
+        latitude:
+          type: number
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Latitude; supplied together with longitude. Responses use null when absent.
+        longitude:
+          type: number
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Longitude; supplied together with latitude. A null pair clears coordinates.
       minProperties: 1
+      oneOf:
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+              nullable: true
+              enum: [null]
+            longitude:
+              type: number
+              nullable: true
+              enum: [null]
+        - not:
+            anyOf:
+              - required: [latitude]
+              - required: [longitude]
     DistributionCenterResponse:
       type: object
       additionalProperties: false
@@ -2303,6 +2413,8 @@ components:
         - id
         - name
         - address
+        - latitude
+        - longitude
       properties:
         id:
           type: string
@@ -2318,14 +2430,42 @@ components:
           type: string
           description: Free-form address from the current model.
           minLength: 1
+        latitude:
+          type: number
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Latitude; supplied together with longitude. Responses use null when absent.
+        longitude:
+          type: number
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Longitude; supplied together with latitude. A null pair clears coordinates.
+      oneOf:
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+              nullable: true
+              enum: [null]
+            longitude:
+              type: number
+              nullable: true
+              enum: [null]
     CreateLogisticsPointRequest:
       type: object
       additionalProperties: false
       required:
         - name
         - address
-        - coordinates
-        - acceptanceSchedule
+        - schedule
       properties:
         name:
           type: string
@@ -2335,20 +2475,48 @@ components:
           type: string
           description: Free-form address from the current model.
           minLength: 1
-        coordinates:
-          type: string
-          description:
-            Opaque coordinate text from the current model. No coordinate order, CRS, delimiter or
-            structured format is assumed.
-        acceptanceSchedule:
+        schedule:
           type: string
           description:
             Free-form acceptance schedule from the current model. It is not a machine-readable
             scheduling or time-zone contract.
+        latitude:
+          type: number
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Latitude; supplied together with longitude. Responses use null when absent.
+        longitude:
+          type: number
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Longitude; supplied together with latitude. A null pair clears coordinates.
       description:
         Initial status is server-owned and cannot be supplied. The initial-status policy is
         pending approval; deployments without an approved policy return 409
         BUSINESS_RULE_NOT_APPROVED without creating a record.
+      oneOf:
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+              nullable: true
+              enum: [null]
+            longitude:
+              type: number
+              nullable: true
+              enum: [null]
+        - not:
+            anyOf:
+              - required: [latitude]
+              - required: [longitude]
     UpdateLogisticsPointRequest:
       type: object
       description:
@@ -2366,12 +2534,7 @@ components:
           type: string
           description: Free-form address from the current model.
           minLength: 1
-        coordinates:
-          type: string
-          description:
-            Opaque coordinate text from the current model. No coordinate order, CRS, delimiter or
-            structured format is assumed.
-        acceptanceSchedule:
+        schedule:
           type: string
           description:
             Free-form acceptance schedule from the current model. It is not a machine-readable
@@ -2382,7 +2545,40 @@ components:
             Status remains a string. Only active occurs in current mocks; it is not an exhaustive
             enum. Initial status and update rules require approval.
           example: active
+        latitude:
+          type: number
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Latitude; supplied together with longitude. Responses use null when absent.
+        longitude:
+          type: number
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Longitude; supplied together with latitude. A null pair clears coordinates.
       minProperties: 1
+      oneOf:
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+              nullable: true
+              enum: [null]
+            longitude:
+              type: number
+              nullable: true
+              enum: [null]
+        - not:
+            anyOf:
+              - required: [latitude]
+              - required: [longitude]
     LogisticsPointResponse:
       type: object
       additionalProperties: false
@@ -2390,8 +2586,9 @@ components:
         - id
         - name
         - address
-        - coordinates
-        - acceptanceSchedule
+        - latitude
+        - longitude
+        - schedule
         - status
       properties:
         id:
@@ -2408,12 +2605,7 @@ components:
           type: string
           description: Free-form address from the current model.
           minLength: 1
-        coordinates:
-          type: string
-          description:
-            Opaque coordinate text from the current model. No coordinate order, CRS, delimiter or
-            structured format is assumed.
-        acceptanceSchedule:
+        schedule:
           type: string
           description:
             Free-form acceptance schedule from the current model. It is not a machine-readable
@@ -2425,6 +2617,35 @@ components:
             enum. Initial status and update rules require approval.
           example: active
           readOnly: true
+        latitude:
+          type: number
+          nullable: true
+          minimum: -90
+          maximum: 90
+          description: Latitude; supplied together with longitude. Responses use null when absent.
+        longitude:
+          type: number
+          nullable: true
+          minimum: -180
+          maximum: 180
+          description: Longitude; supplied together with latitude. A null pair clears coordinates.
+      oneOf:
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        - required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+              nullable: true
+              enum: [null]
+            longitude:
+              type: number
+              nullable: true
+              enum: [null]
     ChangeRouteStatusRequest:
       type: object
       description:

@@ -1,3 +1,4 @@
+import { formatDriverName } from '@/entities/driver'
 import type { Trip } from '@/entities/trip'
 
 export type TripFilters = {
@@ -17,7 +18,11 @@ export const filterTrips = (
       (!query ||
         [
           trip.number,
-          trip.driver.fullName,
+          formatDriverName(trip.driver),
+          formatDriverName(trip.driver, 'full'),
+          trip.driver.firstName,
+          trip.driver.lastName,
+          trip.driver.middleName ?? '',
           trip.vehicle.registrationNumber,
         ].some((value) => value.toLocaleLowerCase('ru-RU').includes(query))) &&
       (!validRange || !startDate || trip.date >= startDate) &&

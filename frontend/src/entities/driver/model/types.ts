@@ -1,5 +1,7 @@
 export type Driver = {
   id: string
-  fullName: string
-  contacts: string
+  firstName: string
+  lastName: string
+  middleName?: string | null
+  phone: string
 }

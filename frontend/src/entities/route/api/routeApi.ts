@@ -10,7 +10,7 @@ import {
 import { mockRouteTimelines } from './mockRouteTimelines'
 import type {
   CreateRouteInput,
-  RouteTimelineItem,
+  RouteStatusRecord,
   UpdateRouteInput,
 } from './types'
 
@@ -72,7 +72,7 @@ const routeApi = baseApi
             : { error: { status: 404, message: 'Маршрут не найден' } }
         },
       }),
-      getRouteTimeline: build.query<RouteTimelineItem[], string>({
+      getRouteTimeline: build.query<RouteStatusRecord[], string>({
         queryFn: async (id) => {
           await waitForMockResponse()
           if (!getMockRoutes().some((route) => route.id === id)) {

@@ -1,18 +1,14 @@
 import { expect, it } from 'vitest'
 
-import type { RouteTimelineItem } from '../api/types'
+import type { RouteStatusRecord } from '../api/types'
 import { getRouteTimelineProgress } from './getRouteTimelineProgress'
 
-const timeline: RouteTimelineItem[] = [
-  'created',
-  'assigned',
-  'intransit',
-  'completed',
-].map((status) => ({
+const timeline: RouteStatusRecord[] = (
+  ['created', 'assigned', 'intransit', 'completed'] as const
+).map((status) => ({
   status,
-  dateTime: '01.11.2026 10:24',
+  occurredAt: '2026-11-01T10:24:00+03:00',
   author: 'Алексей Петров',
-  state: 'pending',
 }))
 
 it.each([
@@ -37,13 +33,13 @@ it.each([
         author,
       })),
     ).toEqual(
-      timeline.map(({ status, dateTime, author }) => ({
+      timeline.map(({ status, author }) => ({
         status,
-        dateTime,
+        dateTime: '01.11.2026 10:24',
         author,
       })),
     )
-    expect(timeline.every((item) => item.state === 'pending')).toBe(true)
+    expect(timeline.every((item) => !('state' in item))).toBe(true)
   },
 )
 
@@ -68,7 +64,7 @@ it.each([
         index < count ? 'completed' : 'pending',
       ),
     )
-    expect(result[0].dateTime).toBe(history[0].dateTime)
+    expect(result[0].dateTime).toBe('01.11.2026 10:24')
     expect(result[0].author).toBe(history[0].author)
     expect(
       result
@@ -86,7 +82,8 @@ it('renders the lifecycle without fabricated event data for empty or unknown his
     result.every((item) => item.dateTime === '' && item.author === ''),
   ).toBe(true)
   const unknown = getRouteTimelineProgress('custom', [
-    { ...timeline[0], status: 'custom' },
+    // Simulate an untrusted response without weakening the approved status contract.
+    { ...timeline[0], status: 'custom' } as unknown as RouteStatusRecord,
   ])
   expect(unknown).toHaveLength(4)
   expect(

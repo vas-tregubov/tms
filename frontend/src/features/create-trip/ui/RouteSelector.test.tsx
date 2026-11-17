@@ -31,13 +31,9 @@ afterAll(() =>
     else Reflect.deleteProperty(HTMLDialogElement.prototype, name)
   }),
 )
-const data: Route[] = [
-  'created',
-  'created',
-  'assigned',
-  'intransit',
-  'completed',
-].map((status, index) => ({
+const data: Route[] = (
+  ['created', 'created', 'assigned', 'intransit', 'completed'] as const
+).map((status, index) => ({
   id: `route-${index}`,
   number: `MR-90000${index}`,
   date: '2026-11-02',

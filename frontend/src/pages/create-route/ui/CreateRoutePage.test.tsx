@@ -143,9 +143,9 @@ const goToReview = async () => {
 it('validates only the current step, retains fields on Back, and restores draft/step after Sidebar navigation', async () => {
   renderFlow()
   expect(screen.getByRole('heading', { name: 'Основные данные' })).toBeTruthy()
-  expect(screen.queryByText('Выберите дату отправки')).toBeNull()
+  expect(screen.queryByText('Выберите дату маршрута')).toBeNull()
   next()
-  expect(screen.getByText('Выберите дату отправки')).toBeTruthy()
+  expect(screen.getByText('Выберите дату маршрута')).toBeTruthy()
   expect(screen.queryByText('Выберите точку отправления')).toBeNull()
   fillBasics()
   next()
@@ -175,7 +175,9 @@ it('validates only the current step, retains fields on Back, and restores draft/
   ).toBe('РЦ Северный')
   next()
   next()
-  expect(screen.getByText('Введите корректное время отправления')).toBeTruthy()
+  expect(
+    screen.getByText('Введите корректное время начала приёмки'),
+  ).toBeTruthy()
   expect(screen.getByRole('heading', { name: 'Время и условия' })).toBeTruthy()
 })
 

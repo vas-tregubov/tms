@@ -207,8 +207,10 @@ it('blocks invalid progression at the current step', async () => {
   await loaded()
   fireEvent.change(screen.getByLabelText('Дата'), { target: { value: '' } })
   next()
-  expect(screen.getByText('Выберите дату отправки')).toBeTruthy()
-  expect(screen.queryByText('Введите корректное время отправления')).toBeNull()
+  expect(screen.getByText('Выберите дату маршрута')).toBeTruthy()
+  expect(
+    screen.queryByText('Введите корректное время начала приёмки'),
+  ).toBeNull()
   fireEvent.change(screen.getByLabelText('Дата'), {
     target: { value: '2026-11-10' },
   })
@@ -234,7 +236,9 @@ it('blocks invalid progression at the current step', async () => {
     target: { value: '' },
   })
   next()
-  expect(screen.getByText('Введите корректное время отправления')).toBeTruthy()
+  expect(
+    screen.getByText('Введите корректное время начала приёмки'),
+  ).toBeTruthy()
   expect(updateMockRoute).not.toHaveBeenCalled()
 })
 

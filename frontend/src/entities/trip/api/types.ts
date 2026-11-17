@@ -1,9 +1,11 @@
-// Temporary read-only Details projection; not a domain event or audit-log model.
+import type { TripStatus } from '../model/types'
+
+// Read-only status history DTO, independent of timeline presentation.
 export type TripStatusRecord = {
-  status: string
-  dateTime: string
+  status: TripStatus
+  occurredAt: string
   author: string
-  comment: string
+  comment?: string | null
 }
 
 export type CreateTripInput = {
@@ -13,5 +15,5 @@ export type CreateTripInput = {
   routeIds: string[]
   driverId: string
   vehicleId: string
-  comment?: string
+  comment?: string | null
 }

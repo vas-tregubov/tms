@@ -7,7 +7,15 @@ export const getMockTrips = () => trips
 export const getMockTripReferences = () => ({
   drivers: [
     ...new Map(mockTrips.map((trip) => [trip.driver.id, trip.driver])).values(),
-  ],
+  ]
+    .map((driver) => ({ ...driver, middleName: driver.middleName ?? null }))
+    .sort(
+      (a, b) =>
+        a.lastName.localeCompare(b.lastName, 'ru') ||
+        a.firstName.localeCompare(b.firstName, 'ru') ||
+        (a.middleName ?? '').localeCompare(b.middleName ?? '', 'ru') ||
+        a.id.localeCompare(b.id),
+    ),
   vehicles: [
     ...new Map(
       mockTrips.map((trip) => [trip.vehicle.id, trip.vehicle]),

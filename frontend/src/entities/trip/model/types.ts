@@ -2,6 +2,8 @@ import type { Driver } from '@/entities/driver'
 import type { Route } from '@/entities/route'
 import type { Vehicle } from '@/entities/vehicle'
 
+export type TripStatus = 'created' | 'assigned' | 'intransit' | 'completed'
+
 export type Trip = {
   id: string
   number: string
@@ -11,6 +13,6 @@ export type Trip = {
   vehicle: Vehicle
   startTime: string
   endTime: string
-  status: string
-  comment?: string
+  status: TripStatus
+  comment?: string | null
 }

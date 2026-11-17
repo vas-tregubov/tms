@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router'
 
+import { formatDriverName } from '@/entities/driver'
 import { getTripStatusOption, type Trip } from '@/entities/trip'
 
 import ActionMenu, { ActionMenuItem } from '@/shared/ui/action-menu'
@@ -58,7 +59,7 @@ const TripsTable = ({ trips }: TripsTableProps) => {
               {[
                 trip.date.split('-').reverse().join('.'),
                 trip.routes.length,
-                trip.driver.fullName,
+                formatDriverName(trip.driver),
                 trip.vehicle.registrationNumber,
                 `${trip.startTime}–${trip.endTime}`,
               ].map((value, index) => (

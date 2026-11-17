@@ -35,12 +35,16 @@ export const updateMockRoute = ({
   // Explicit allowlist preserves server-owned fields even for unexpected runtime input.
   const updated: Route = {
     ...current,
-    date: changes.date,
-    startPoint: changes.startPoint,
-    endPoint: changes.endPoint,
-    startTime: changes.startTime,
-    endTime: changes.endTime,
-    comment: changes.comment,
+    ...(changes.date !== undefined ? { date: changes.date } : {}),
+    ...(changes.startPoint !== undefined
+      ? { startPoint: changes.startPoint }
+      : {}),
+    ...(changes.endPoint !== undefined ? { endPoint: changes.endPoint } : {}),
+    ...(changes.startTime !== undefined
+      ? { startTime: changes.startTime }
+      : {}),
+    ...(changes.endTime !== undefined ? { endTime: changes.endTime } : {}),
+    ...(changes.comment !== undefined ? { comment: changes.comment } : {}),
   }
   routes = routes.map((route) => (route.id === id ? updated : route))
   return updated
@@ -64,7 +68,7 @@ export const prepareMockRouteAssignment = (ids: string[]) => {
         status: 409,
         message: `Маршрут ${route.number} уже недоступен для назначения.`,
       }
-    return { ...route, status: 'assigned' }
+    return { ...route, status: 'assigned' as const }
   })
   const replacements = new Map(selected.map((route) => [route.id, route]))
   const next = routes.map((route) => replacements.get(route.id) ?? route)

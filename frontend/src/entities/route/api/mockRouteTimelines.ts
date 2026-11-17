@@ -1,56 +1,49 @@
-import type { RouteTimelineItem } from './types'
+import type { RouteStatusRecord } from './types'
 
 const author = 'Алексей Петров'
 
-// Explicit mock UI values. Times are independent of Route's planned date/time.
-// For Completed, marker states reproduce Figma 382:29159 (green, green, neutral, neutral).
-export const mockRouteTimelines: Record<string, RouteTimelineItem[]> = {
+// Fixed recorded event instants, independent of planned Route acceptance windows.
+// The explicit offsets preserve the existing fixture wall times, not a scheduling zone policy.
+export const mockRouteTimelines: Record<string, RouteStatusRecord[]> = {
   'route-001': [
     {
       status: 'created',
-      dateTime: '01.11.2026 10:24',
+      occurredAt: '2026-11-01T10:24:00+03:00',
       author,
-      state: 'completed',
     },
     {
       status: 'assigned',
-      dateTime: '01.11.2026 14:15',
+      occurredAt: '2026-11-01T14:15:00+03:00',
       author,
-      state: 'pending',
     },
   ],
   'route-002': [
     {
       status: 'created',
-      dateTime: '01.11.2026 16:10',
+      occurredAt: '2026-11-01T16:10:00+03:00',
       author,
-      state: 'pending',
     },
   ],
   'route-003': [
     {
       status: 'created',
-      dateTime: '31.10.2026 10:24',
+      occurredAt: '2026-10-31T10:24:00+03:00',
       author,
-      state: 'completed',
     },
     {
       status: 'assigned',
-      dateTime: '31.10.2026 14:15',
+      occurredAt: '2026-10-31T14:15:00+03:00',
       author,
-      state: 'completed',
     },
     {
       status: 'intransit',
-      dateTime: '01.11.2026 08:45',
+      occurredAt: '2026-11-01T08:45:00+03:00',
       author,
-      state: 'pending',
     },
     {
       status: 'completed',
-      dateTime: '01.11.2026 10:35',
+      occurredAt: '2026-11-01T10:35:00+03:00',
       author,
-      state: 'pending',
     },
   ],
 }

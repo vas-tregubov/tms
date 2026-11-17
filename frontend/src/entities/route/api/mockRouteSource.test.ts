@@ -17,7 +17,7 @@ it('immutably replaces editable values while preserving server-owned fields', ()
     endPoint: original.startPoint,
     startTime: '23:59',
     endTime: '00:00',
-    comment: undefined,
+    comment: null,
     // Unexpected runtime properties must not overwrite server-owned values.
     id: 'untrusted-id',
     number: 'UNTRUSTED',
@@ -31,7 +31,7 @@ it('immutably replaces editable values while preserving server-owned fields', ()
     endPoint: changes.endPoint,
     startTime: changes.startTime,
     endTime: changes.endTime,
-    comment: undefined,
+    comment: null,
   })
   expect(getMockRoutes()).not.toBe(before)
   expect(before[0]).toBe(original)
@@ -53,4 +53,19 @@ it('does not replace completed Routes through the mock operation', () => {
   ).toBeUndefined()
   expect(getMockRoutes()).toBe(before)
   expect(getMockRoutes().find((item) => item.id === route.id)).toBe(route)
+})
+
+it('retains omitted fields and clears an explicitly nullable comment in a partial update', () => {
+  const original = getMockRoutes()[0]
+  const updated = updateMockRoute({
+    id: original.id,
+    changes: { date: '2026-12-01' },
+  })!
+  expect(updated).toEqual({ ...original, date: '2026-12-01' })
+  const cleared = updateMockRoute({
+    id: original.id,
+    changes: { comment: null },
+  })!
+  expect(cleared).toEqual({ ...updated, comment: null })
+  expect(original.comment).toBe('Температурный режим +2…+6 °C')
 })

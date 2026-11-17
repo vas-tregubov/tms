@@ -1,9 +1,9 @@
 import { baseApi } from '@/shared/api'
 
 import type { Trip } from '../model/types'
-import type { TripStatusRecord } from './types'
+import { getMockTripReferences, getMockTrips } from './mockTripSource'
 import { mockTripTimeline } from './mockTripTimeline'
-import { getMockTrips, getMockTripReferences } from './mockTripSource'
+import type { TripStatusRecord } from './types'
 
 const waitForMockResponse = () =>
   new Promise<void>((resolve) => setTimeout(resolve, 150))

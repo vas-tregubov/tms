@@ -3,6 +3,7 @@ import { Link, matchPath, Outlet, useLocation, useNavigate } from 'react-router'
 
 import { ErrorBoundary, ErrorFallback } from '@/app/error-boundary'
 import AppLayout from '@/app/layouts/app-layout'
+
 import type Sidebar from '@/widgets/sidebar'
 
 const SIDEBAR_HREFS = {

@@ -1,16 +1,17 @@
-import type { ReactNode } from 'react'
 import {
   fireEvent,
   render as renderView,
   screen,
   within,
 } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, expect, it } from 'vitest'
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
+
 import { baseApi } from '@/shared/api'
 
 beforeEach(() => {

@@ -1,7 +1,7 @@
 import type { MouseEventHandler } from 'react'
 
-import BellIcon from '@/shared/assets/icons/bell.svg?react'
 import BellNewIcon from '@/shared/assets/icons/bell-new.svg?react'
+import BellIcon from '@/shared/assets/icons/bell.svg?react'
 import IconButton from '@/shared/ui/icon-button'
 
 type NotificationTriggerProps = {

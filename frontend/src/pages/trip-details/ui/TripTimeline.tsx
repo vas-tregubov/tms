@@ -3,6 +3,7 @@ import {
   getTripTimelineProgress,
   type TripStatusRecord,
 } from '@/entities/trip'
+
 import Button from '@/shared/ui/button'
 import Loader from '@/shared/ui/loader'
 import Select from '@/shared/ui/select'

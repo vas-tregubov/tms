@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import {
-  ROUTE_FORM_STEPS,
   getRouteFormChanges,
+  type Route,
+  ROUTE_FORM_STEPS,
   useCreateRouteMutation,
   useGetRoutePointsQuery,
-  type Route,
 } from '@/entities/route'
+
 import ArrowLeftIcon from '@/shared/assets/icons/arrow-left.svg?react'
 import ArrowRightIcon from '@/shared/assets/icons/arrow-right.svg?react'
 import SaveIcon from '@/shared/assets/icons/save.svg?react'
@@ -15,13 +16,13 @@ import Button from '@/shared/ui/button'
 import Loader from '@/shared/ui/loader'
 import Stepper from '@/shared/ui/stepper'
 
-import { validateStep, type DraftErrors } from '../lib/validation'
+import { type DraftErrors, validateStep } from '../lib/validation'
 import {
+  type CreateRouteState,
   resetCreateRoute,
+  type RouteDraft,
   setStep,
   updateDraft,
-  type CreateRouteState,
-  type RouteDraft,
 } from '../model/createRouteSlice'
 import RouteFormFields from './RouteFormFields'
 

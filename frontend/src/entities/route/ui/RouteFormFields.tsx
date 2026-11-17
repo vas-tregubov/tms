@@ -4,9 +4,8 @@ import Combobox, { type ComboboxOption } from '@/shared/ui/combobox'
 import DateInput from '@/shared/ui/date-input'
 import Input from '@/shared/ui/input'
 
-import RouteTimeHelp from './RouteTimeHelp'
-
 import type { RouteFormErrors, RouteFormValues } from '../model/form'
+import RouteTimeHelp from './RouteTimeHelp'
 
 type RouteFormFieldsProps = {
   statusControl: ReactNode

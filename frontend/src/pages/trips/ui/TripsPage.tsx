@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { useGetTripsQuery } from '@/entities/trip'
+
 import AddIcon from '@/shared/assets/icons/add.svg?react'
 import ChevronLeftIcon from '@/shared/assets/icons/chevron-left.svg?react'
 import ChevronRightIcon from '@/shared/assets/icons/chevron-right.svg?react'

@@ -7,6 +7,7 @@ import {
   useGetRouteByIdQuery,
   useGetRouteTimelineQuery,
 } from '@/entities/route'
+
 import EditIcon from '@/shared/assets/icons/edit.svg?react'
 import Breadcrumbs from '@/shared/ui/breadcrumbs'
 import Button from '@/shared/ui/button'

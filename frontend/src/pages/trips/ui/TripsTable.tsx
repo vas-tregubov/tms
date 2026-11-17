@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { getTripStatusOption, type Trip } from '@/entities/trip'
+
 import ActionMenu, { ActionMenuItem } from '@/shared/ui/action-menu'
 import StatusBadge from '@/shared/ui/status-badge'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'

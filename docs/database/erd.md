@@ -11,8 +11,7 @@ Naming is `snake_case` in PostgreSQL and `camelCase` at the TypeScript/API bound
 ## ERD
 
 The diagram shows physical FK cardinalities, including retained assignment rows.
-A non-deleted Trip must additionally have at least one current membership.
-Each Route endpoint uses exactly one of its two nullable directory FKs.
+See the constraints and membership sections for endpoint and composition invariants.
 
 ```mermaid
 erDiagram
@@ -194,9 +193,8 @@ A FK/UNIQUE cannot enforce “each Trip has at least one current Route”. For t
 MVP, enforce this in the service transaction, not a custom deferred trigger:
 lock every affected Trip before changing memberships, apply the complete change,
 then verify the final composition before commit. A non-deleted Trip must be
-nonempty; a deleted Trip must have no current memberships. Creation inserts the
-Trip and its memberships in the same transaction. Concurrent removals serialize
-on the parent Trip lock, so each check sees the preceding committed change.
+nonempty; a deleted Trip must have no current memberships. Concurrent removals
+serialize on the parent Trip lock, so each check sees the preceding committed change.
 Removing the final Route requires an allowed erroneous-Trip deletion in the same
 transaction or a conflict. Do not silently keep an empty Trip.
 
@@ -333,10 +331,9 @@ do not duplicate them. Add only the following access paths when implementing:
 | Two Trip resource GiST exclusion indexes                                          | Driver/Vehicle interval-overlap queries for non-deleted bookings.                                                                                                                                                                                 |
 | `trips (driver_id)` and `trips (vehicle_id)`                                      | Find all referencing Trips, including deleted tombstones, for directory delete/FK checks; partial booking indexes do not cover tombstones.                                                                                                        |
 
-Routes and Trips retain the OpenAPI default order `number DESC, id ASC`; this
-persistence design does not change it to date order or numeric-suffix order.
-Date/status filtering may require scanning more index entries. Add a composite
-filter/order index only after measuring the concrete query; a date-first index
+Keep the list ordering specified in the index table above; do not substitute
+date or numeric-suffix order. Date/status filtering may scan more index entries.
+Add a composite filter/order index only after measuring the concrete query; a date-first index
 must not silently change result ordering.
 
 Current substring search is case-insensitive over Route number/point names and

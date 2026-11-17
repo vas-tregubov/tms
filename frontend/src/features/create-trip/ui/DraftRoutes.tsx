@@ -1,5 +1,6 @@
 import type { Route } from '@/entities/route'
 import { getRouteStatusOption } from '@/entities/route'
+
 import ActionMenu, { ActionMenuItem } from '@/shared/ui/action-menu'
 import StatusBadge from '@/shared/ui/status-badge'
 import Table, { TableCell, TableRow } from '@/shared/ui/table'

@@ -4,7 +4,8 @@ import { Provider } from 'react-redux'
 import { MemoryRouter, useLocation } from 'react-router'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { useGetRoutesQuery, type Route } from '@/entities/route'
+import { type Route, useGetRoutesQuery } from '@/entities/route'
+
 import { baseApi } from '@/shared/api'
 
 import RoutesPage from './RoutesPage'

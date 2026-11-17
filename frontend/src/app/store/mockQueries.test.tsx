@@ -1,15 +1,16 @@
-import type { PropsWithChildren } from 'react'
 import { act, cleanup, renderHook } from '@testing-library/react'
+import type { PropsWithChildren } from 'react'
 import { Provider } from 'react-redux'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
 import {
   useGetRouteByIdQuery,
-  useUpdateRouteMutation,
   useGetRoutesQuery,
   useGetRouteTimelineQuery,
+  useUpdateRouteMutation,
 } from '@/entities/route'
 import { useGetTripByIdQuery, useGetTripsQuery } from '@/entities/trip'
+
 import { baseApi } from '@/shared/api'
 
 import { store } from './store'

@@ -1,11 +1,12 @@
 import { prepareMockRouteAssignment } from '@/entities/route'
 import {
+  type CreateTripInput,
   getMockTripReferences,
   saveMockTrip,
-  type CreateTripInput,
   type Trip,
 } from '@/entities/trip'
-import { baseApi, type ApiError } from '@/shared/api'
+
+import { type ApiError, baseApi } from '@/shared/api'
 
 import { validateTripDraft } from '../lib/validation'
 

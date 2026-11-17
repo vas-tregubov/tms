@@ -6,16 +6,16 @@ This document defines the main conventions for writing frontend code in the TMS 
 
 The frontend application uses:
 
-* React;
-* TypeScript;
-* Vite;
-* Tailwind CSS;
-* Feature-Sliced Design;
-* Storybook;
-* Vitest;
-* Playwright;
-* ESLint;
-* Prettier.
+- React;
+- TypeScript;
+- Vite;
+- Tailwind CSS;
+- Feature-Sliced Design;
+- Storybook;
+- Vitest;
+- Playwright;
+- ESLint;
+- Prettier.
 
 ## React Components
 
@@ -47,7 +47,7 @@ The filename should match the component name:
 ```text
 Button.tsx
 RouteCard.tsx
-RoadsListPage.tsx
+RoutesPage.tsx
 ```
 
 ## Naming Conventions
@@ -58,7 +58,7 @@ React components, component files, and TypeScript types should use `PascalCase`:
 Button
 ButtonProps
 RouteCard
-RoadsListPage
+RoutesPage
 ```
 
 Functions, variables, and properties should use `camelCase`:
@@ -137,15 +137,16 @@ separate copy of server state in a Redux slice.
 Use the `@` alias for imports from `src`:
 
 ```tsx
-import Button from '@/shared/ui/Button'
-import RouteCard from '@/entities/route/ui/RouteCard'
+import type { Route } from '@/entities/route'
+
+import Button from '@/shared/ui/button'
 ```
 
 Avoid long relative import paths:
 
 ```tsx
 // Not recommended
-import Button from '../../../../shared/ui/Button'
+import Button from '../../../../shared/ui/button'
 ```
 
 Short relative imports are allowed within the same module:
@@ -154,6 +155,25 @@ Short relative imports are allowed within the same module:
 import Button from './Button'
 import type { ButtonProps } from './types'
 ```
+
+Use these import groups, separated by one blank line:
+
+1. Node built-ins (`node:`), in tooling files.
+2. External packages.
+3. Internal aliases, grouped by FSD layer: `app`, `pages`, `widgets`,
+   `features`, `entities`, `shared` (only where dependencies are allowed).
+4. Relative imports within the current module.
+
+Within each group, sort by module path alphabetically, case-insensitively.
+Sort named imports by the imported name with the same ordering; keep aliases
+and `type` modifiers. Type-only declarations stay in their module's group.
+Default and namespace imports retain their normal TypeScript syntax.
+
+Side-effect imports (such as CSS and polyfills) are ordering barriers: preserve
+their positions and relative order, and sort the groups on either side separately.
+Do not change import targets or bypass public APIs to satisfy sorting.
+Prettier handles formatting; import ordering is a review convention, not an
+additional ESLint plugin.
 
 ## Feature-Sliced Design
 
@@ -171,12 +191,12 @@ src/
 
 Layer responsibilities:
 
-* `app` — application initialization and global configuration;
-* `pages` — application pages;
-* `widgets` — large, self-contained page sections;
-* `features` — user actions and business scenarios;
-* `entities` — business entities;
-* `shared` — reusable components, utilities, API clients, and assets.
+- `app` — application initialization and global configuration;
+- `pages` — application pages;
+- `widgets` — large, self-contained page sections;
+- `features` — user actions and business scenarios;
+- `entities` — business entities;
+- `shared` — reusable components, utilities, API clients, and assets.
 
 Dependencies must flow from higher layers to lower layers:
 
@@ -206,7 +226,7 @@ A slice should expose a public API through an `index.ts` file.
 Example:
 
 ```text
-shared/ui/Button/
+shared/ui/button/
 ├── Button.tsx
 ├── Button.stories.tsx
 ├── Button.test.tsx
@@ -214,7 +234,7 @@ shared/ui/Button/
 ```
 
 ```ts
-// shared/ui/Button/index.ts
+// shared/ui/button/index.ts
 export { default } from './Button'
 ```
 
@@ -229,7 +249,7 @@ Use `export { default as Component } from './Component'` only when there is an e
 Usage:
 
 ```tsx
-import Button from '@/shared/ui/Button'
+import Button from '@/shared/ui/button'
 ```
 
 Do not import internal slice files by bypassing their public API.
@@ -262,12 +282,12 @@ src/app/styles/theme.css
 
 Design tokens should contain:
 
-* brand colors;
-* text and background colors;
-* fonts;
-* border radii;
-* shadows;
-* other shared visual values.
+- brand colors;
+- text and background colors;
+- fonts;
+- border radii;
+- shadows;
+- other shared visual values.
 
 Example:
 
@@ -310,15 +330,15 @@ Button.stories.tsx
 
 Create stories for meaningful component states:
 
-* Default;
-* Disabled;
-* Loading.
+- Default;
+- Disabled;
+- Loading.
 
 If a component has visual variants, create separate stories for them:
 
-* Primary;
-* Secondary;
-* Danger.
+- Primary;
+- Secondary;
+- Danger.
 
 The `Danger` variant is intended for actions with potentially destructive consequences, such as deleting a route.
 
@@ -330,11 +350,11 @@ Use Vitest to test component and function logic.
 
 Test meaningful behavior such as:
 
-* handling user actions;
-* displaying loading states;
-* disabling unavailable actions;
-* conditionally displaying data;
-* transforming data.
+- handling user actions;
+- displaying loading states;
+- disabling unavailable actions;
+- conditionally displaying data;
+- transforming data.
 
 There is no need to test every Tailwind class or obvious static markup.
 

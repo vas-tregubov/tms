@@ -5,8 +5,10 @@ import { beforeEach, expect, it, vi } from 'vitest'
 
 import AppRouter from '@/app/router'
 import { store } from '@/app/store'
+
+import { type Route, useGetRoutesQuery } from '@/entities/route'
+
 import { baseApi } from '@/shared/api'
-import { useGetRoutesQuery, type Route } from '@/entities/route'
 
 vi.mock('@/entities/route', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/entities/route')>()

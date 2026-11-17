@@ -1,13 +1,13 @@
 import { Route, Routes } from 'react-router'
 
-import EditRoutePage from '@/pages/edit-route'
-import CreateTripPage from '@/pages/create-trip'
 import CreateRoutePage from '@/pages/create-route'
-import TripsPage from '@/pages/trips'
-import TripDetailsPage from '@/pages/trip-details'
+import CreateTripPage from '@/pages/create-trip'
+import EditRoutePage from '@/pages/edit-route'
 import PlaceholderPage from '@/pages/placeholder'
-import RoutesPage from '@/pages/routes'
 import RouteDetailsPage from '@/pages/route-details'
+import RoutesPage from '@/pages/routes'
+import TripDetailsPage from '@/pages/trip-details'
+import TripsPage from '@/pages/trips'
 
 import RoutedAppLayout from './RoutedAppLayout'
 

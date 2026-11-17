@@ -1,9 +1,9 @@
+import { configureStore } from '@reduxjs/toolkit'
 import { cleanup, renderHook, waitFor } from '@testing-library/react'
+import type { PropsWithChildren } from 'react'
 import { Provider } from 'react-redux'
 import { afterEach, expect, it } from 'vitest'
-import type { PropsWithChildren } from 'react'
 
-import { configureStore } from '@reduxjs/toolkit'
 import { baseApi } from '@/shared/api'
 
 import { useGetTripTimelineQuery } from './tripApi'

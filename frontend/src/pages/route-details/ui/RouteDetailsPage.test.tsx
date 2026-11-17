@@ -8,6 +8,7 @@ import {
   useGetRouteByIdQuery,
   useGetRouteTimelineQuery,
 } from '@/entities/route'
+
 import { baseApi } from '@/shared/api'
 
 import RouteDetailsPage from './RouteDetailsPage'

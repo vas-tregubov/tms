@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterAll, beforeAll, beforeEach, expect, it, vi } from 'vitest'
 
-import { useGetRoutesQuery, type Route } from '@/entities/route'
+import { type Route, useGetRoutesQuery } from '@/entities/route'
 
 import RouteSelector from './RouteSelector'
 

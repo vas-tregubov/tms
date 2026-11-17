@@ -142,8 +142,9 @@ The `MR-` / `TR-` presentation format must not impose a six-digit lifetime limit
 | `route_status_history` | `id bigint`; `route_id uuid FK routes`; `from_status text NULL`, `to_status text`; `occurred_at timestamptz DEFAULT clock_timestamp()`; `author text`; `comment text NULL DEFAULT NULL`                                                                                                      | Existing four status values only; `from_status IS NULL` identifies initial creation. Append-only server facts, not UI marker states.                                         |
 | `trip_status_history`  | Same history fields, with `trip_id uuid FK trips` instead of `route_id`                                                                                                                                                                                                                      | Same status checks and append-only policy.                                                                                                                                   |
 
-Proposed coordinate nullability supports existing Distribution Centers without
-coordinates; whether coordinates must be required before planning remains open.
+Coordinates are optional as confirmed in #225: API absence is a null pair,
+with no partial pair allowed. Whether coordinates must be required before
+planning remains open.
 Reject nonfinite numeric capacity values. Capacity positivity, zero, maximum
 bounds and volume scale still require a business decision; integer kg and decimal
 m³ are the agreed units, not a load-feasibility algorithm. Store times at minute
@@ -213,7 +214,13 @@ Trip deleted before execution receives `deleted_at`; normal lists/details treat
 it as deleted, while internal history can still resolve its number and links.
 No physical deletion of a Trip with history and no cascading deletion is needed.
 
-**Snapshot policy proposal, pending approval.** The snapshot columns in the ERD
+**Assignment fixation requirement confirmed in #225.** Route data used when
+assigning it to a Trip must remain historically fixed for that Trip even if the
+source Route changes later. The exact Route assignment field set and storage
+shape are not defined by the minimal directory snapshots below; that design
+remains open. Existing frontend copies are temporary projections.
+
+**Snapshot structure/capture policy proposal, pending approval.** The snapshot columns in the ERD
 and table definitions represent this proposal, not an approved HTTP contract.
 Copy only fields necessary to read a business document independently of later
 reference-data edits. The proposed capture/freeze boundaries are:
@@ -347,26 +354,24 @@ current Driver ↔ Vehicle relation because no such relation exists.
 
 ## Open decisions and integration differences
 
-- **Driver:** frontend/domain/OpenAPI still use `fullName` and `contacts`; move
-  to required `firstName`, `lastName`, `phone` and optional `middleName`, with a
-  derived display name. Phone canonicalization and current-directory reuse after
+- **Driver:** #225 uses required `firstName`, `lastName`, `phone` and optional
+  `middleName` (API response null when absent), with derived display names. Phone canonicalization and current-directory reuse after
   archive need an explicit input policy. Do not split existing names heuristically.
-- **Vehicle:** old `maxWeight`/`maxVolume` have no units; map to integer kg and
-  decimal m³ explicitly. Choose numeric bounds/scale, registration normalization,
+- **Vehicle:** #225 names API fields `maxWeightKg` (integer kg) and
+  `maxVolumeM3` (decimal m³). Choose numeric bounds/scale, registration normalization,
   initial availability and allowed status changes. `available` is only a fixture
   value; status is an eligibility flag, not the time-based booking calendar.
-- **Points:** add DC latitude/longitude; replace LP `coordinates` with numeric
-  latitude/longitude and `acceptanceSchedule` with free-text `schedule`. Decide
-  whether coordinates are required and which status permits new use.
-- **Route window:** retain API `startTime`/`endTime` semantics, but current UI still
-  labels them as departure/arrival in places. Decide business zone, overnight
+- **Points:** #225 uses optional numeric latitude/longitude pairs and free-text
+  LP `schedule`. Which status permits new use remains open.
+- **Route window:** retain API `startTime`/`endTime` acceptance-window semantics.
+  Decide business zone, overnight
   window/date interpretation and minute precision at the API boundary.
 - **Trip interval:** current `date` plus two `HH:mm` fields cannot express multi-day
   work. Evolve API/forms to offset-bearing full `startsAt`/`endsAt`; decide display
   zone and date-filter semantics. No midnight inference or automatic optimization.
 - **Membership:** current frontend/OpenAPI lacks transfer/edit/delete flow; mocks
-  embed Route copies and even place `route-002` in a Trip while leaving it `created`
-  in the selectable source. Replace that inconsistency with real membership reads.
+  embed temporary Route copies. #225 removes the contradictory initial membership
+  of the free `route-002`; real membership reads remain a persistence integration task.
   Define execution-start evidence, exceptional transfer eligibility, standalone
   release of partially executed Routes and empty-source-Trip handling. Until
   approved, reject uncertain cases with 409; never move a completed Route.
@@ -381,9 +386,10 @@ current Driver ↔ Vehicle relation because no such relation exists.
   it until a retention rule exists rather than erase append-only history. Do not
   equate UI timeline marker states with stored status events.
 - **Contract:** OpenAPI currently leaves scheduling/deletion policies provisional,
-  lacks these renamed fields/UUID formats, already defines RFC 3339 history while
-  frontend mocks use localized strings, and does not yet expose this retention
-  policy. Update it in a separate task; a persistence proposal does not silently amend HTTP DTOs.
+  retains the legacy Trip interval until timezone/date-filter decisions, and does
+  not yet expose the proposed retention/snapshot storage policy. #225 synchronizes
+  approved directory fields and RFC 3339 history; a persistence proposal does not
+  silently amend HTTP DTOs or require UUID-shaped mock IDs.
 
 Sources inspected: [frontend entity types](../../frontend/src/entities/),
 [Route mock storage](../../frontend/src/entities/route/api/mockRouteSource.ts),

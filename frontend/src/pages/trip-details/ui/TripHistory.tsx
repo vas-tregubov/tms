@@ -1,5 +1,6 @@
 import { getTripStatusOption, type TripStatusRecord } from '@/entities/trip'
 
+import { formatRecordedDateTime } from '@/shared/lib/date-time'
 import Button from '@/shared/ui/button'
 import Loader from '@/shared/ui/loader'
 import StatusBadge from '@/shared/ui/status-badge'
@@ -47,33 +48,40 @@ const TripHistory = ({ query }: TripHistoryProps) => {
         </TableRow>
       </thead>
       <tbody>
-        {[...query.currentData].reverse().map((record) => {
-          const status = getTripStatusOption(record.status)
-          return (
-            <TableRow key={`${record.status}-${record.dateTime}`}>
-              <TableCell>
-                <span className="text-xs">{record.dateTime}</span>
-              </TableCell>
-              <TableCell>
-                {status ? (
-                  <StatusBadge status={status.value}>
-                    {status.label}
-                  </StatusBadge>
-                ) : (
-                  record.status
-                )}
-              </TableCell>
-              <TableCell>
-                <span className="text-xs">{record.author}</span>
-              </TableCell>
-              <TableCell>
-                <span className="block truncate text-xs" title={record.comment}>
-                  {record.comment}
-                </span>
-              </TableCell>
-            </TableRow>
-          )
-        })}
+        {[...query.currentData]
+          .sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt))
+          .map((record) => {
+            const status = getTripStatusOption(record.status)
+            return (
+              <TableRow key={`${record.status}-${record.occurredAt}`}>
+                <TableCell>
+                  <span className="text-xs">
+                    {formatRecordedDateTime(record.occurredAt)}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  {status ? (
+                    <StatusBadge status={status.value}>
+                      {status.label}
+                    </StatusBadge>
+                  ) : (
+                    record.status
+                  )}
+                </TableCell>
+                <TableCell>
+                  <span className="text-xs">{record.author}</span>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className="block truncate text-xs"
+                    title={record.comment ?? undefined}
+                  >
+                    {record.comment || '—'}
+                  </span>
+                </TableCell>
+              </TableRow>
+            )
+          })}
       </tbody>
     </Table>
   )

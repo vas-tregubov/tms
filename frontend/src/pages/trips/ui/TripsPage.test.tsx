@@ -78,15 +78,17 @@ const trips: Trip[] = Array.from({ length: 7 }, (_, index) => ({
   routes: [],
   driver: {
     id: 'driver-test',
-    fullName: index < 2 ? 'Иванов Сергей' : 'Мария Петрова',
-    contacts: 'test',
+    firstName: index < 2 ? 'Сергей' : 'Мария',
+    lastName: index < 2 ? 'Иванов' : 'Петрова',
+    middleName: null,
+    phone: 'test',
   },
   vehicle: {
     id: 'vehicle-test',
     registrationNumber: index < 2 ? 'А001АА77' : 'Б002ББ77',
     type: 'Фургон',
-    maxWeight: 1000,
-    maxVolume: 5,
+    maxWeightKg: 1000,
+    maxVolumeM3: 5,
     status: 'available',
   },
   startTime: '09:00',
@@ -233,3 +235,25 @@ it('shows query errors and delegates retry', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Попробовать ещё раз' }))
   expect(refetch).toHaveBeenCalledTimes(1)
 })
+
+it.each(['Иванович', 'Сергей Иванов', 'Иванов Сергей Иванович'])(
+  'searches Driver name parts and composite names: %s',
+  (search) => {
+    const trip: Trip = {
+      ...trips[0],
+      driver: { ...trips[0].driver, middleName: 'Иванович' },
+    }
+    vi.mocked(useGetTripsQuery).mockReturnValue({
+      data: [trip],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as ReturnType<typeof useGetTripsQuery>)
+    renderTrips()
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Поиск' }), {
+      target: { value: search },
+    })
+    expect(screen.getByRole('link', { name: trip.number })).toBeTruthy()
+    expect(screen.getByText('Сергей Иванов')).toBeTruthy()
+  },
+)

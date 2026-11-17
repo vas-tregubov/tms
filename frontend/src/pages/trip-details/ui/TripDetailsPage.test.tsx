@@ -70,7 +70,7 @@ it('loads Trip information, related Routes, status lifecycle and real history me
       .hasAttribute('disabled'),
   ).toBe(true)
   const routes = within(screen.getByRole('table', { name: 'Маршруты в рейсе' }))
-  expect(routes.getAllByRole('row')).toHaveLength(3)
+  expect(routes.getAllByRole('row')).toHaveLength(2)
   expect(
     routes.getByRole('link', { name: 'MR-000123' }).getAttribute('href'),
   ).toBe('/routes/route-001')
@@ -167,4 +167,35 @@ it('shows projection errors without hiding Trip information', async () => {
     screen.getByRole('button', { name: 'Повторить загрузку истории' }),
   )
   expect(refetch).toHaveBeenCalledTimes(1)
+})
+
+it('orders history by event instants across offsets and accepts absent or null comments', async () => {
+  vi.mocked(useGetTripTimelineQuery).mockReturnValue({
+    currentData: [
+      {
+        status: 'assigned',
+        occurredAt: '2026-11-01T07:30:00Z',
+        author: 'Диспетчер',
+      },
+      {
+        status: 'created',
+        occurredAt: '2026-11-01T10:00:00+03:00',
+        author: 'Диспетчер',
+        comment: null,
+      },
+    ],
+    isLoading: false,
+    isFetching: false,
+    isError: false,
+    refetch: vi.fn(),
+  } as ReturnType<typeof useGetTripTimelineQuery>)
+  renderDetails()
+  const table = within(
+    await screen.findByRole('table', { name: 'История изменений рейса' }),
+  )
+  const rows = table.getAllByRole('row')
+  expect(rows[1].textContent).toContain('01.11.2026 07:30')
+  expect(rows[1].textContent).toContain('Назначен')
+  expect(rows[2].textContent).toContain('01.11.2026 10:00')
+  expect(table.getAllByText('—')).toHaveLength(2)
 })

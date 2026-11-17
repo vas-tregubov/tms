@@ -1,6 +1,7 @@
 import { skipToken } from '@reduxjs/toolkit/query'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 
+import { formatDriverName } from '@/entities/driver'
 import {
   getTripStatusOption,
   useGetTripByIdQuery,
@@ -56,7 +57,7 @@ const TripDetailsPage = () => {
     ['Дата', trip.date.split('-').reverse().join('.')],
     ['Время начала', trip.startTime],
     ['Время окончания', trip.endTime],
-    ['Водитель', trip.driver.fullName],
+    ['Водитель', formatDriverName(trip.driver)],
     [
       'Транспортное средство',
       `${trip.vehicle.registrationNumber} · ${trip.vehicle.type}`,

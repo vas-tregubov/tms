@@ -55,10 +55,20 @@ it('loads consistent Routes and Trips lists asynchronously through the app store
   const trips = result.current.trips.data!
   expect(routes.length).toBeGreaterThan(0)
   expect(trips.length).toBeGreaterThan(0)
+  const memberships = trips.flatMap((trip) =>
+    trip.routes.map((route) => route.id),
+  )
+  expect(new Set(memberships).size).toBe(memberships.length)
+  expect(
+    routes
+      .filter((route) => route.status === 'created')
+      .some((route) => !memberships.includes(route.id)),
+  ).toBe(true)
   for (const trip of trips) {
     for (const route of trip.routes) {
       const listedRoute = routes.find((item) => item.id === route.id)
       expect(listedRoute).toBeDefined()
+      expect(route.status).not.toBe('created')
       // Nested Trip snapshots may omit optional detail-only fields such as comment.
       expect(route).toMatchObject({
         id: listedRoute!.id,

@@ -1,11 +1,11 @@
-import type { Route } from '../model/types'
+import type { Route, RouteStatus } from '../model/types'
 
-// Temporary Details UI projection, not a RouteStatusEvent/audit-log contract.
-export type RouteTimelineItem = {
-  status: string
-  dateTime: string
+// Read-only status history DTO, independent of timeline presentation.
+export type RouteStatusRecord = {
+  status: RouteStatus
+  occurredAt: string
   author: string
-  state: 'completed' | 'pending'
+  comment?: string | null
 }
 
 export type RouteEditableFields = Pick<
@@ -17,5 +17,5 @@ export type CreateRouteInput = RouteEditableFields
 
 export type UpdateRouteInput = {
   id: string
-  changes: RouteEditableFields
+  changes: Partial<RouteEditableFields>
 }

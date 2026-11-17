@@ -69,8 +69,8 @@ const RouteDetailsPage = () => {
     ['Дата', route.date.split('-').reverse().join('.')],
     ['Точка отправления', route.startPoint.name],
     ['Точка назначения', route.endPoint.name],
-    ['Время отправления', route.startTime],
-    ['Время прибытия', route.endTime],
+    ['Приёмка с', route.startTime],
+    ['Приёмка до', route.endTime],
     ['Комментарий / особые условия', route.comment || '—'],
   ]
 

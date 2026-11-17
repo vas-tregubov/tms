@@ -23,14 +23,14 @@ it('shows a newly assigned Trip as two completed and two pending stages without 
 it('preserves real event metadata and safely handles unknown status', () => {
   const records = [
     {
-      status: 'created',
-      dateTime: '01.11.2026 10:24',
+      status: 'created' as const,
+      occurredAt: '2026-11-01T10:24:00+03:00',
       author: 'Алексей Петров',
       comment: '',
     },
   ]
   expect(getTripTimelineProgress('assigned', records)[0]).toMatchObject({
-    dateTime: records[0].dateTime,
+    dateTime: '01.11.2026 10:24',
     author: records[0].author,
   })
   expect(

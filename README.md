@@ -45,5 +45,6 @@ npm --prefix backend run start:dev
 - [Planned OpenAPI contract](docs/api/openapi.yaml)
 - [Backend commands](backend/README.md)
 
-Domain Model and OpenAPI still contain field shapes that need synchronization
-with the persistence design in a separate task.
+Approved directory fields and status-history formats are synchronized with the
+persistence design. Trip timestamp migration and snapshot storage remain subject
+to the open decisions documented in the domain model and ERD.

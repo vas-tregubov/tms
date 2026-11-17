@@ -23,7 +23,7 @@ it('maps selected IDs to API point values and excludes form-only fields', () => 
     endPoint: points[1],
     startTime: draft.startTime,
     endTime: draft.endTime,
-    comment: undefined,
+    comment: null,
   })
 })
 

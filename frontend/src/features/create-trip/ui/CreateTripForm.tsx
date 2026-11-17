@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 
-import type { Driver } from '@/entities/driver'
+import { type Driver, formatDriverName } from '@/entities/driver'
 import { useGetRoutesQuery } from '@/entities/route'
 import { getTripStatusOption, type Trip } from '@/entities/trip'
 import type { Vehicle } from '@/entities/vehicle'
@@ -212,7 +212,7 @@ const CreateTripForm = ({
               <option value="">Выберите водителя</option>
               {drivers.map((driver) => (
                 <option key={driver.id} value={driver.id}>
-                  {driver.fullName}
+                  {formatDriverName(driver)}
                 </option>
               ))}
             </Select>

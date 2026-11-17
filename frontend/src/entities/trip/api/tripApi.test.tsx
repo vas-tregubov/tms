@@ -39,7 +39,7 @@ it('loads the temporary timeline projection and keeps unknown IDs not found', as
     'completed',
   ])
   expect(result.current.existing.data?.[3]).toMatchObject({
-    dateTime: '01.11.2026 11:00',
+    occurredAt: '2026-11-01T11:00:00+03:00',
     author: 'Алексей Петров',
     comment: 'Рейс выполнен',
   })

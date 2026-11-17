@@ -2,7 +2,8 @@ export type Vehicle = {
   id: string
   registrationNumber: string
   type: string
-  maxWeight: number
-  maxVolume: number
+  // Whole kilograms; fractional capacity is represented only by volume.
+  maxWeightKg: number
+  maxVolumeM3: number
   status: string
 }

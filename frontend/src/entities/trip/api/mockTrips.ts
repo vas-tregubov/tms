@@ -8,29 +8,34 @@ const distributionCenter: Route['startPoint'] = {
   id: 'dc-001',
   name: 'РЦ Северный',
   address: 'Москва, Складская улица, 1',
+  latitude: null,
+  longitude: null,
 }
 
 const logisticsPoint: Route['endPoint'] = {
   id: 'point-001',
   name: 'Логистический пункт Центральный',
   address: 'Москва, Транспортная улица, 10',
-  coordinates: '55.7558, 37.6173',
-  acceptanceSchedule: 'Ежедневно 08:00–20:00',
+  latitude: 55.7558,
+  longitude: 37.6173,
+  schedule: 'Ежедневно 08:00–20:00',
   status: 'active',
 }
 
 const driver: Trip['driver'] = {
   id: 'driver-001',
-  fullName: 'Алексей Петров',
-  contacts: '+7 (900) 000-00-01',
+  firstName: 'Алексей',
+  lastName: 'Петров',
+  middleName: null,
+  phone: '+7 (900) 000-00-01',
 }
 
 const vehicle: Trip['vehicle'] = {
   id: 'vehicle-001',
   registrationNumber: 'А001АА777',
   type: 'Грузовой фургон',
-  maxWeight: 3500,
-  maxVolume: 18,
+  maxWeightKg: 3500,
+  maxVolumeM3: 18,
   status: 'available',
 }
 
@@ -50,16 +55,6 @@ export const mockTrips: Trip[] = [
         startTime: '09:00',
         endTime: '10:30',
         status: 'assigned',
-      },
-      {
-        id: 'route-002',
-        number: 'MR-000122',
-        date: '2026-11-02',
-        startPoint: logisticsPoint,
-        endPoint: distributionCenter,
-        startTime: '11:00',
-        endTime: '12:30',
-        status: 'created',
       },
     ],
     driver,

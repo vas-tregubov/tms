@@ -1,4 +1,4 @@
-export type { Route } from './model/types'
+export type { Route, RouteStatus } from './model/types'
 export {
   useGetRoutesQuery,
   useGetRoutePointsQuery,

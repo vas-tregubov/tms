@@ -1,16 +1,17 @@
 import type { TripStatusRecord } from './types'
 
+// Fixed fixture offsets are event metadata, not a Trip scheduling zone policy.
 export const mockTripTimeline: Record<string, TripStatusRecord[]> = {
   'trip-001': [
     {
       status: 'created',
-      dateTime: '01.11.2026 10:24',
+      occurredAt: '2026-11-01T10:24:00+03:00',
       author: 'Алексей Петров',
-      comment: 'Рейс создан: 2 маршрута',
+      comment: 'Рейс создан: 1 маршрут',
     },
     {
       status: 'assigned',
-      dateTime: '01.11.2026 14:15',
+      occurredAt: '2026-11-01T14:15:00+03:00',
       author: 'Мария Соколова',
       comment: 'Назначены водитель и ТС',
     },
@@ -18,25 +19,25 @@ export const mockTripTimeline: Record<string, TripStatusRecord[]> = {
   'trip-002': [
     {
       status: 'created',
-      dateTime: '31.10.2026 10:24',
+      occurredAt: '2026-10-31T10:24:00+03:00',
       author: 'Алексей Петров',
       comment: 'Рейс создан: 1 маршрут',
     },
     {
       status: 'assigned',
-      dateTime: '31.10.2026 14:15',
+      occurredAt: '2026-10-31T14:15:00+03:00',
       author: 'Мария Соколова',
       comment: 'Назначены водитель и ТС',
     },
     {
       status: 'intransit',
-      dateTime: '01.11.2026 08:30',
+      occurredAt: '2026-11-01T08:30:00+03:00',
       author: 'Алексей Петров',
       comment: 'Выезд с точки отправления',
     },
     {
       status: 'completed',
-      dateTime: '01.11.2026 11:00',
+      occurredAt: '2026-11-01T11:00:00+03:00',
       author: 'Алексей Петров',
       comment: 'Рейс выполнен',
     },

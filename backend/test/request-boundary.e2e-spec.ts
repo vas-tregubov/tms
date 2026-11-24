@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -6,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   INestApplication,
+  Logger,
   NotFoundException,
   Post,
 } from '@nestjs/common';
@@ -67,6 +69,11 @@ class BoundaryController {
     };
   }
 
+  @Get('bad-request')
+  badRequest() {
+    throw new BadRequestException('SQLSTATE: sensitive-internal-detail');
+  }
+
   @Get('missing')
   missing() {
     throw new NotFoundException('sensitive-internal-detail');
@@ -84,6 +91,13 @@ class BoundaryController {
     throw new Error('SQLSTATE 23505: sensitive-internal-detail');
   }
 
+  @Get('untrusted-status')
+  untrustedStatus() {
+    throw Object.assign(new Error('sensitive-internal-detail'), {
+      status: 413,
+    });
+  }
+
   @Get('http-server-error')
   serverError() {
     throw new HttpException(
@@ -95,6 +109,18 @@ class BoundaryController {
 
 describe('global HTTP request boundary', () => {
   let app: INestApplication<App>;
+
+  let logError: jest.SpyInstance;
+
+  beforeEach(() => {
+    logError = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -169,10 +195,42 @@ describe('global HTTP request boundary', () => {
       .send('{invalid-json')
       .expect(400)
       .expect({
-        code: 'VALIDATION_ERROR',
-        message: 'The request contains invalid fields.',
+        code: 'BAD_REQUEST',
+        message: 'The request could not be processed.',
       });
   });
+
+  it('normalizes non-validation HTTP 400 without exposing exception details', async () => {
+    await request(app.getHttpServer())
+      .get('/boundary/bad-request')
+      .expect(400)
+      .expect({
+        code: 'BAD_REQUEST',
+        message: 'The request could not be processed.',
+      });
+    expect(logError).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      'oversized JSON',
+      undefined,
+      { label: 'x'.repeat(110 * 1024), count: 2 },
+      413,
+    ],
+    ['unsupported charset', 'application/json; charset=iso-8859-1', '{}', 415],
+  ])(
+    'preserves parser status for %s without logging internal failure',
+    async (_, contentType, body, status) => {
+      const req = request(app.getHttpServer()).post('/boundary');
+      if (contentType) req.set('Content-Type', contentType);
+      await req.send(body).expect(status).expect({
+        code: 'HTTP_ERROR',
+        message: 'The request could not be completed.',
+      });
+      expect(logError).not.toHaveBeenCalled();
+    },
+  );
 
   it.each(['/boundary/missing', '/unknown-resource'])(
     'returns the API 404 contract for %s',
@@ -194,7 +252,18 @@ describe('global HTTP request boundary', () => {
       });
   });
 
-  it.each(['/boundary/unexpected', '/boundary/http-server-error'])(
+  it('does not log expected client errors as server failures', async () => {
+    await request(app.getHttpServer()).post('/boundary').send({}).expect(400);
+    await request(app.getHttpServer()).get('/boundary/missing').expect(404);
+    await request(app.getHttpServer()).get('/boundary/conflict').expect(409);
+    expect(logError).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    '/boundary/unexpected',
+    '/boundary/http-server-error',
+    '/boundary/untrusted-status',
+  ])(
     'hides internal exceptions and does not echo a client request ID: %s',
     async (path) => {
       await request(app.getHttpServer())
@@ -205,6 +274,12 @@ describe('global HTTP request boundary', () => {
           code: 'INTERNAL_ERROR',
           message: 'An unexpected error occurred.',
         });
+      expect(logError).toHaveBeenCalledTimes(1);
+      expect(logError).toHaveBeenCalledWith(
+        path === '/boundary/http-server-error'
+          ? 'HTTP request failed: HTTP exception; status=500'
+          : 'HTTP request failed: unexpected exception; status=500',
+      );
     },
   );
 });

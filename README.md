@@ -4,47 +4,49 @@ Transport Management System for route planning and delivery operations.
 
 ## Current State
 
-The dispatcher frontend runs with in-memory mock data. It includes Routes List,
-Details, Create and Edit; Trips List, Details and Create; filtering, navigation,
-and application error boundaries. Mock changes last for the current browser
-session and are lost on reload.
+The dispatcher frontend supports Routes List, Details, Create and Edit, and Trips
+List, Details and Create using in-memory mock data. Changes are lost on reload.
 
-The NestJS backend is a scaffold with a sample endpoint and Jest tests. The
-frontend is not connected to a production backend. PostgreSQL persistence and
-the HTTP API are documented designs, not implemented integrations.
+The backend has PostgreSQL connectivity and global HTTP validation/error handling.
+Business APIs and persistence entities are not implemented yet.
 
 ## Stack
 
 - Frontend: React, TypeScript, Vite, Tailwind CSS, React Router, Redux Toolkit
   and RTK Query; Storybook, Vitest/React Testing Library and Playwright.
-- Backend: NestJS and TypeScript; Jest.
+- Backend: NestJS, TypeScript, PostgreSQL and Jest.
 - CI: GitHub Actions frontend checks.
 
 ## Local Development
 
-Install dependencies and configure Git hooks from the repository root:
+From the repository root:
 
 ```bash
 npm run setup
-npm --prefix frontend run dev
+cp -n backend/.env.example backend/.env
 ```
 
-The frontend works independently of the backend. To run the backend scaffold:
+Local development requires PostgreSQL 17 with a `tms_dev` database. Update
+`backend/.env` with your connection settings. The separate `tms_test` database is
+used for backend E2E and configured when preparing the test environment. Keep
+credentials out of Git.
+
+Run the frontend and backend in separate terminals:
+
+```bash
+npm --prefix frontend run dev
+```
 
 ```bash
 npm --prefix backend run start:dev
 ```
 
-## Project Documentation
+## Documentation
 
 - [Contributing and Git workflow](CONTRIBUTING.md)
 - [Code style](docs/code-style/README.md)
-- [Frontend testing strategy and commands](docs/testing-strategy/README.md)
-- [Current domain model](docs/domain-model.md)
-- [Planned persistence model and open decisions](docs/database/erd.md)
-- [Planned OpenAPI contract](docs/api/openapi.yaml)
-- [Backend commands](backend/README.md)
-
-Approved directory fields and status-history formats are synchronized with the
-persistence design. Trip timestamp migration and snapshot storage remain subject
-to the open decisions documented in the domain model and ERD.
+- [Testing strategy](docs/testing-strategy/README.md)
+- [Domain model](docs/domain-model.md)
+- [Database design and open decisions](docs/database/erd.md)
+- [OpenAPI contract](docs/api/openapi.yaml)
+- [Design system](docs/design-system/README.md)

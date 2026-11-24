@@ -2947,7 +2947,6 @@ components:
       required:
         - code
         - message
-        - requestId
       properties:
         code:
           type: string
@@ -2961,7 +2960,7 @@ components:
           description: Safe human-readable explanation. Must not contain secrets, SQL details or stack traces.
         requestId:
           type: string
-          description: Server-assigned request correlation identifier.
+          description: Optional server-assigned request correlation identifier. Omitted until a correlation mechanism is configured.
           minLength: 1
         details:
           type: array
